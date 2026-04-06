@@ -12,6 +12,8 @@ export default function PoliceReports() {
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [showMap, setShowMap] = useState(false);
+  const [mediaIndex, setMediaIndex] = useState(0);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
@@ -101,6 +103,7 @@ export default function PoliceReports() {
     setEditingReport(report);
     setEditStatus(report.status);
     setEditNotes(report.adminNotes || '');
+    setMediaIndex(0);
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
@@ -108,6 +111,78 @@ export default function PoliceReports() {
   });
 
   const formatViolation = (type) => type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  // Render a single media item (image or video)
+  const renderMediaItem = (item, style = {}) => {
+    if (!item) return null;
+    if (item.type === 'video') {
+      return (
+        <video
+          src={item.url}
+          controls
+          style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', borderRadius: 'var(--radius-md)', background: '#000', ...style }}
+        />
+      );
+    }
+    return (
+      <img
+        src={item.url}
+        alt="Evidence"
+        style={{ width: '100%', maxHeight: '350px', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer', ...style }}
+        onClick={() => setLightboxMedia(item)}
+      />
+    );
+  };
+
+  // Thumbnail for table rows
+  const renderThumbnail = (media) => {
+    if (!media || media.length === 0) {
+      return (
+        <div style={{
+          width: 48, height: 48, borderRadius: 'var(--radius-md)',
+          background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', fontSize: '18px', color: 'var(--text-tertiary)'
+        }}>
+          📷
+        </div>
+      );
+    }
+    const first = media[0];
+    if (first.type === 'video') {
+      return (
+        <div style={{
+          width: 48, height: 48, borderRadius: 'var(--radius-md)',
+          background: '#000', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', position: 'relative', overflow: 'hidden'
+        }}>
+          <video src={first.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '16px'
+          }}>▶</div>
+          {media.length > 1 && (
+            <div style={{
+              position: 'absolute', top: 2, right: 2, background: 'rgba(99,102,241,0.9)',
+              borderRadius: 'var(--radius-sm)', fontSize: '9px', padding: '1px 4px',
+              color: '#fff', fontWeight: 700
+            }}>{media.length}</div>
+          )}
+        </div>
+      );
+    }
+    return (
+      <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative' }}>
+        <img src={first.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {media.length > 1 && (
+          <div style={{
+            position: 'absolute', top: 2, right: 2, background: 'rgba(99,102,241,0.9)',
+            borderRadius: 'var(--radius-sm)', fontSize: '9px', padding: '1px 4px',
+            color: '#fff', fontWeight: 700
+          }}>{media.length}</div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -183,6 +258,7 @@ export default function PoliceReports() {
               <table className="table">
                 <thead>
                   <tr>
+                    <th>Evidence</th>
                     <th>Violation</th>
                     <th>Location</th>
                     <th>AI Plate</th>
@@ -195,6 +271,11 @@ export default function PoliceReports() {
                 <tbody>
                   {reports.map(r => (
                     <tr key={r._id}>
+                      <td>
+                        <div style={{ cursor: 'pointer' }} onClick={() => openEdit(r)}>
+                          {renderThumbnail(r.media)}
+                        </div>
+                      </td>
                       <td><span className="violation-badge">{formatViolation(r.violationType)}</span></td>
                       <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', maxWidth: 150 }}>
                         {r.location?.address || 'GPS'}
@@ -241,28 +322,144 @@ export default function PoliceReports() {
       {/* Review Modal */}
       {editingReport && (
         <div className="modal-overlay" onClick={() => setEditingReport(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h3 className="modal-title">Review Report</h3>
               <button className="modal-close" onClick={() => setEditingReport(null)}>✕</button>
             </div>
             <div className="modal-body">
-              {editingReport.media?.length > 0 && (
-                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                  <img src={editingReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover' }} />
+
+              {/* === EVIDENCE MEDIA GALLERY === */}
+              {editingReport.media?.length > 0 ? (
+                <div style={{ marginBottom: 'var(--space-lg)' }}>
+                  <label className="form-label" style={{ marginBottom: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+                    📎 Evidence ({editingReport.media.length} file{editingReport.media.length > 1 ? 's' : ''})
+                  </label>
+                  <div style={{
+                    borderRadius: 'var(--radius-lg)', overflow: 'hidden',
+                    background: '#000', position: 'relative'
+                  }}>
+                    {renderMediaItem(editingReport.media[mediaIndex])}
+
+                    {/* Navigation controls for multiple media */}
+                    {editingReport.media.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => setMediaIndex(i => (i - 1 + editingReport.media.length) % editingReport.media.length)}
+                          style={{
+                            position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                            background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none',
+                            borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '16px', backdropFilter: 'blur(4px)', transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'rgba(99,102,241,0.8)'}
+                          onMouseLeave={e => e.target.style.background = 'rgba(0,0,0,0.6)'}
+                        >◀</button>
+                        <button
+                          onClick={() => setMediaIndex(i => (i + 1) % editingReport.media.length)}
+                          style={{
+                            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                            background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none',
+                            borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '16px', backdropFilter: 'blur(4px)', transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'rgba(99,102,241,0.8)'}
+                          onMouseLeave={e => e.target.style.background = 'rgba(0,0,0,0.6)'}
+                        >▶</button>
+
+                        {/* Dots indicator */}
+                        <div style={{
+                          position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+                          display: 'flex', gap: 6
+                        }}>
+                          {editingReport.media.map((_, i) => (
+                            <div
+                              key={i}
+                              onClick={() => setMediaIndex(i)}
+                              style={{
+                                width: i === mediaIndex ? 20 : 8, height: 8,
+                                borderRadius: 4, cursor: 'pointer',
+                                background: i === mediaIndex ? 'var(--primary-400)' : 'rgba(255,255,255,0.5)',
+                                transition: 'all 0.3s ease'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Media type label */}
+                  <div style={{
+                    marginTop: 'var(--space-xs)', display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'center', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)'
+                  }}>
+                    <span>{editingReport.media[mediaIndex]?.type === 'video' ? '🎥 Video' : '🖼️ Image'}</span>
+                    {editingReport.media.length > 1 && <span>{mediaIndex + 1} / {editingReport.media.length}</span>}
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  marginBottom: 'var(--space-lg)', padding: 'var(--space-xl)',
+                  background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-lg)',
+                  textAlign: 'center', color: 'var(--text-tertiary)'
+                }}>
+                  <div style={{ fontSize: '2rem', marginBottom: 'var(--space-xs)' }}>📷</div>
+                  <div style={{ fontSize: 'var(--font-sm)' }}>No evidence media attached</div>
                 </div>
               )}
 
-              <div style={{ marginBottom: 'var(--space-md)', fontSize: 'var(--font-sm)' }}>
-                <strong>Type:</strong> {formatViolation(editingReport.violationType)}<br />
-                <strong>Location:</strong> {editingReport.location?.address || 'GPS'}<br />
-                {editingReport.aiResults?.numberPlate && <><strong>AI Plate:</strong> {editingReport.aiResults.numberPlate}<br /></>}
-                {editingReport.aiResults?.vehicleType && <><strong>Vehicle:</strong> {editingReport.aiResults.vehicleType}<br /></>}
-                {editingReport.aiResults?.helmetDetected !== null && (
-                  <><strong>Helmet:</strong> {editingReport.aiResults.helmetDetected ? '✅ Yes' : '❌ No'}<br /></>
+              {/* Report details */}
+              <div style={{
+                marginBottom: 'var(--space-md)', fontSize: 'var(--font-sm)',
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)'
+              }}>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Violation Type</div>
+                  <div style={{ fontWeight: 600 }}>{formatViolation(editingReport.violationType)}</div>
+                </div>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Location</div>
+                  <div style={{ fontWeight: 600 }}>{editingReport.location?.address || 'GPS'}</div>
+                </div>
+                {editingReport.aiResults?.numberPlate && (
+                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>AI Number Plate</div>
+                    <div style={{ fontWeight: 600, fontFamily: 'monospace' }}>{editingReport.aiResults.numberPlate}</div>
+                  </div>
                 )}
-                {editingReport.description && <><strong>Description:</strong> {editingReport.description}<br /></>}
+                {editingReport.aiResults?.vehicleType && (
+                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Vehicle Type</div>
+                    <div style={{ fontWeight: 600, textTransform: 'capitalize' }}>{editingReport.aiResults.vehicleType}</div>
+                  </div>
+                )}
+                {editingReport.aiResults?.helmetDetected !== null && editingReport.aiResults?.helmetDetected !== undefined && (
+                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Helmet Detected</div>
+                    <div style={{ fontWeight: 600 }}>{editingReport.aiResults.helmetDetected ? '✅ Yes' : '❌ No'}</div>
+                  </div>
+                )}
+                {editingReport.aiResults?.confidence > 0 && (
+                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>AI Confidence</div>
+                    <div style={{ fontWeight: 600 }}>{Math.round(editingReport.aiResults.confidence * 100)}%</div>
+                  </div>
+                )}
               </div>
+
+              {editingReport.description && (
+                <div style={{
+                  marginBottom: 'var(--space-md)', padding: 'var(--space-md)',
+                  background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--font-sm)', lineHeight: 1.6
+                }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 4 }}>Description</div>
+                  {editingReport.description}
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Decision</label>
@@ -291,6 +488,34 @@ export default function PoliceReports() {
           </div>
         </div>
       )}
+
+      {/* Lightbox for full-size image viewing */}
+      {lightboxMedia && (
+        <div
+          className="modal-overlay"
+          style={{ zIndex: 2000, background: 'rgba(0,0,0,0.9)', cursor: 'zoom-out' }}
+          onClick={() => setLightboxMedia(null)}
+        >
+          <img
+            src={lightboxMedia.url}
+            alt="Full evidence"
+            style={{
+              maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain',
+              borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+            }}
+          />
+          <button
+            onClick={() => setLightboxMedia(null)}
+            style={{
+              position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.15)',
+              border: 'none', color: '#fff', fontSize: '24px', width: 44, height: 44,
+              borderRadius: '50%', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)'
+            }}
+          >✕</button>
+        </div>
+      )}
     </div>
   );
 }
+

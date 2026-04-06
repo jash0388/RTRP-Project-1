@@ -93,13 +93,26 @@ exports.googleLogin = async (req, res) => {
     const { token } = req.body;
     
     if (!token) {
-      return res.status(400).json({ message: 'No token provided' });
+      return res.status(400).json({ message: 'No Google token provided.' });
     }
 
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      console.error('GOOGLE_CLIENT_ID is not set in server .env');
+      return res.status(500).json({ message: 'Google Login is not configured on the server. GOOGLE_CLIENT_ID is missing.' });
+    }
+
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+    } catch (verifyError) {
+      console.error('Google token verification failed:', verifyError.message);
+      return res.status(401).json({ 
+        message: `Google token verification failed: ${verifyError.message}` 
+      });
+    }
     
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
@@ -111,10 +124,14 @@ exports.googleLogin = async (req, res) => {
       if (user.role === 'police' || user.role === 'admin') {
         return res.status(403).json({ message: 'Police and Admin accounts must login with credentials.' });
       }
+      // Update avatar if changed
+      if (picture && user.avatar !== picture) {
+        await user.update({ avatar: picture });
+      }
     } else {
       // Create new user if not exists
       const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
-      user = await User.create({ name, email, password: randomPassword, role: 'user', avatar: picture });
+      user = await User.create({ name, email, password: randomPassword, role: 'user', avatar: picture || '' });
     }
 
     res.json({
@@ -125,6 +142,7 @@ exports.googleLogin = async (req, res) => {
       token: generateToken(user.id)
     });
   } catch (error) {
-    res.status(500).json({ message: 'Google authentication failed', error: error.message });
+    console.error('Google login error:', error);
+    res.status(500).json({ message: `Google authentication failed: ${error.message}` });
   }
 };

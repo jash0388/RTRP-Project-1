@@ -13,6 +13,23 @@ const getAuthHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// Safely parse JSON responses — prevents "Unexpected end of JSON input" crashes
+const handleResponse = async (res) => {
+  const text = await res.text();
+  if (!text) {
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    return {};
+  }
+  try {
+    const data = JSON.parse(text);
+    if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+    return data;
+  } catch (e) {
+    if (e.message && !e.message.includes('JSON')) throw e; // re-throw API errors
+    throw new Error(`Server returned invalid response (${res.status})`);
+  }
+};
+
 // ---- Auth ----
 export const authAPI = {
   login: (email, password) =>
@@ -20,24 +37,24 @@ export const authAPI = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   register: (name, email, password) =>
     fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   googleLogin: (token) =>
     fetch(`${API_BASE}/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token })
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getMe: () =>
-    fetch(`${API_BASE}/auth/me`, { headers: getHeaders() }).then(r => r.json())
+    fetch(`${API_BASE}/auth/me`, { headers: getHeaders() }).then(handleResponse)
 };
 
 // ---- Reports ----
@@ -47,17 +64,17 @@ export const reportsAPI = {
       method: 'POST',
       headers: getAuthHeader(),
       body: formData
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getMyReports: (page = 1, limit = 10) =>
     fetch(`${API_BASE}/reports/my?page=${page}&limit=${limit}`, {
       headers: getHeaders()
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getReport: (id) =>
     fetch(`${API_BASE}/reports/${id}`, {
       headers: getHeaders()
-    }).then(r => r.json())
+    }).then(handleResponse)
 };
 
 // ---- Admin ----
@@ -66,7 +83,7 @@ export const adminAPI = {
     const query = new URLSearchParams(params).toString();
     return fetch(`${API_BASE}/admin/reports?${query}`, {
       headers: getHeaders()
-    }).then(r => r.json());
+    }).then(handleResponse);
   },
 
   updateReport: (id, data) =>
@@ -74,18 +91,18 @@ export const adminAPI = {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data)
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   deleteReport: (id) =>
     fetch(`${API_BASE}/admin/reports/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getUsers: (page = 1) =>
     fetch(`${API_BASE}/admin/users?page=${page}`, {
       headers: getHeaders()
-    }).then(r => r.json())
+    }).then(handleResponse)
 };
 
 // ---- Analytics ----
@@ -93,15 +110,16 @@ export const analyticsAPI = {
   getSummary: () =>
     fetch(`${API_BASE}/analytics/summary`, {
       headers: getHeaders()
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getHeatmap: () =>
     fetch(`${API_BASE}/analytics/heatmap`, {
       headers: getHeaders()
-    }).then(r => r.json()),
+    }).then(handleResponse),
 
   getAreas: () =>
     fetch(`${API_BASE}/analytics/areas`, {
       headers: getHeaders()
-    }).then(r => r.json())
+    }).then(handleResponse)
 };
+

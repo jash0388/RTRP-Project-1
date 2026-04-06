@@ -27,8 +27,13 @@ export function AuthProvider({ children }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        setUser(data);
+        const text = await res.text();
+        if (text) {
+          const data = JSON.parse(text);
+          setUser(data);
+        } else {
+          logout();
+        }
       } else {
         logout();
       }
@@ -39,14 +44,30 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const safeJsonParse = async (res) => {
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
+
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Login failed');
+    let res;
+    try {
+      res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+    } catch {
+      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+    }
+    const data = await safeJsonParse(res);
+    if (!res.ok) throw new Error(data?.message || 'Login failed. Please check your credentials.');
+    if (!data?.token) throw new Error('Invalid response from server.');
     localStorage.setItem('sphn_token', data.token);
     setToken(data.token);
     setUser(data);
@@ -54,13 +75,19 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (name, email, password) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Registration failed');
+    let res;
+    try {
+      res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+    } catch {
+      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+    }
+    const data = await safeJsonParse(res);
+    if (!res.ok) throw new Error(data?.message || 'Registration failed.');
+    if (!data?.token) throw new Error('Invalid response from server.');
     localStorage.setItem('sphn_token', data.token);
     setToken(data.token);
     setUser(data);
@@ -68,13 +95,19 @@ export function AuthProvider({ children }) {
   };
 
   const googleLogin = async (credentialToken) => {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: credentialToken })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Google Login failed');
+    let res;
+    try {
+      res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialToken })
+      });
+    } catch {
+      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+    }
+    const data = await safeJsonParse(res);
+    if (!res.ok) throw new Error(data?.message || 'Google Login failed. Please try again.');
+    if (!data?.token) throw new Error('Invalid response from server.');
     localStorage.setItem('sphn_token', data.token);
     setToken(data.token);
     setUser(data);
