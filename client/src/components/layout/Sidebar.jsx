@@ -137,7 +137,7 @@ export default function Sidebar({ isOpen, onClose }) {
             color: 'var(--danger-500)'
           }}
         >
-          🚪 Logout
+          Logout
         </button>
       </div>
     </aside>

@@ -92,6 +92,7 @@ exports.getAllUsers = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          isBanned: user.isBanned,
           createdAt: user.createdAt,
           reportCount
         };
@@ -104,6 +105,53 @@ exports.getAllUsers = async (req, res) => {
       totalPages: Math.ceil(count / limit),
       total: count
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Toggle user ban status (admin)
+// @route   PATCH /api/admin/users/:id/ban
+exports.toggleBanUser = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent admin from banning themselves
+    if (user.id === req.user.id) {
+      return res.status(400).json({ message: 'You cannot ban yourself' });
+    }
+
+    user.isBanned = !user.isBanned;
+    await user.save();
+
+    res.json({ 
+      message: `User ${user.isBanned ? 'banned' : 'unbanned'} successfully`,
+      isBanned: user.isBanned 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Delete user (admin)
+// @route   DELETE /api/admin/users/:id
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent admin from deleting themselves
+    if (user.id === req.user.id) {
+      return res.status(400).json({ message: 'You cannot delete yourself' });
+    }
+
+    await user.destroy();
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

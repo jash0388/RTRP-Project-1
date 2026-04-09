@@ -57,6 +57,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
+    }
+
     res.json({
       _id: user.id,
       name: user.name,
@@ -127,6 +131,10 @@ exports.googleLogin = async (req, res) => {
       // Update avatar if changed
       if (picture && user.avatar !== picture) {
         await user.update({ avatar: picture });
+      }
+
+      if (user.isBanned) {
+        return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
       }
     } else {
       // Create new user if not exists

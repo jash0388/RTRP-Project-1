@@ -26,6 +26,26 @@ export default function AdminUsers() {
     }
   };
 
+  const handleToggleBan = async (id) => {
+    if (!window.confirm('Are you sure you want to change this user\'s access status?')) return;
+    try {
+      await adminAPI.toggleBanUser(id);
+      loadUsers();
+    } catch (err) {
+      alert(err.message || 'Failed to update user status');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('PERMANENT ACTION: Are you sure you want to delete this user? This cannot be undone.')) return;
+    try {
+      await adminAPI.deleteUser(id);
+      loadUsers();
+    } catch (err) {
+      alert(err.message || 'Failed to delete user');
+    }
+  };
+
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
@@ -57,7 +77,9 @@ export default function AdminUsers() {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Reports</th>
+                    <th>Status</th>
                     <th>Joined</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -92,8 +114,43 @@ export default function AdminUsers() {
                           {user.reportCount}
                         </span>
                       </td>
+                      <td>
+                        <span className={`badge ${user.isBanned ? 'badge-rejected' : 'badge-approved'}`} style={{ fontSize: '10px' }}>
+                          {user.isBanned ? '🚫 BANNED' : '✅ ACTIVE'}
+                        </span>
+                      </td>
                       <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
                         {formatDate(user.createdAt)}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: 'var(--space-xs)', justifyContent: 'flex-end' }}>
+                          <button 
+                            onClick={() => handleToggleBan(user._id)}
+                            className="btn btn-sm" 
+                            style={{ 
+                              padding: '4px 8px', 
+                              fontSize: '11px',
+                              background: user.isBanned ? 'var(--primary-500)' : 'rgba(239, 68, 68, 0.1)',
+                              color: user.isBanned ? 'white' : '#ef4444',
+                              border: user.isBanned ? 'none' : '1px solid rgba(239, 68, 68, 0.2)'
+                            }}
+                          >
+                            {user.isBanned ? '🔓 Unban' : '🚫 Ban'}
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(user._id)}
+                            className="btn btn-sm" 
+                            style={{ 
+                              padding: '4px 8px', 
+                              fontSize: '11px',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              color: '#ef4444',
+                              border: '1px solid rgba(239, 68, 68, 0.2)'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

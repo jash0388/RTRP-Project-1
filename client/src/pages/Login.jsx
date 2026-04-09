@@ -108,7 +108,7 @@ export default function Login() {
             {loading ? (
               <><div className="spinner spinner-sm" style={{ borderTopColor: 'white' }}></div> Signing in...</>
             ) : (
-              '🔐 Sign In'
+              'Sign In'
             )}
           </button>
         </form>
@@ -131,19 +131,6 @@ export default function Login() {
         <div className="auth-footer">
           Don't have an account?{' '}
           <Link to="/register">Create one</Link>
-        </div>
-
-        <div style={{
-          marginTop: 'var(--space-lg)',
-          padding: 'var(--space-md)',
-          background: 'rgba(99,102,241,0.1)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-xs)',
-          color: 'rgba(255,255,255,0.6)',
-          textAlign: 'center'
-        }}>
-          <strong style={{ color: 'var(--primary-300)' }}>Demo Admin:</strong> admin@sphn.com / admin123<br />
-          <strong style={{ color: '#38bdf8' }}>Demo Police:</strong> police@sphn.com / police123
         </div>
       </div>
     </div>

@@ -102,6 +102,18 @@ export const adminAPI = {
   getUsers: (page = 1) =>
     fetch(`${API_BASE}/admin/users?page=${page}`, {
       headers: getHeaders()
+    }).then(handleResponse),
+
+  deleteUser: (id) =>
+    fetch(`${API_BASE}/admin/users/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    }).then(handleResponse),
+
+  toggleBanUser: (id) =>
+    fetch(`${API_BASE}/admin/users/${id}/ban`, {
+      method: 'PATCH',
+      headers: getHeaders()
     }).then(handleResponse)
 };
 
