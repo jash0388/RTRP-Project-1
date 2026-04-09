@@ -114,6 +114,11 @@ export default function Home() {
         textAlign: 'center',
         paddingBottom: 'var(--space-xl)'
       }}>
+        <div style={{ marginBottom: 'var(--space-md)', display: 'flex', justifyContent: 'center', gap: 'var(--space-lg)', fontSize: '11px', fontWeight: 600 }}>
+          <Link to="/admin/login" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>System Administration</Link>
+          <span style={{ color: 'var(--border-color)' }}>|</span>
+          <Link to="/police/login" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>Enforcement Gateway</Link>
+        </div>
         <div style={{ fontWeight: 700, color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Ministry of Road Transport & Safety | Official Citizen Portal
         </div>

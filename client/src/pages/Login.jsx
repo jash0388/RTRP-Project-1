@@ -138,8 +138,13 @@ export default function Login() {
         </div>
 
         <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--font-sm)', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--space-lg)', marginTop: 'var(--space-md)' }}>
-          Identity not verified?{' '}
-          <Link to="/register" style={{ color: 'var(--primary-700)', fontWeight: 700 }}>Register as Citizen</Link>
+          <div style={{ marginBottom: 'var(--space-sm)' }}>
+            Identity not verified?{' '}
+            <Link to="/register" style={{ color: 'var(--primary-700)', fontWeight: 700 }}>Register as Citizen</Link>
+          </div>
+          <div style={{ fontSize: 'var(--font-xs)', marginTop: 'var(--space-md)', color: 'var(--text-tertiary)' }}>
+            Official Personnel? Access the <Link to="/admin/login" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>Admin Portal</Link> or <Link to="/police/login" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>Police Gateway</Link>
+          </div>
         </div>
       </div>
     </div>

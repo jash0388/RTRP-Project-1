@@ -4,6 +4,8 @@ import { useAuth } from './context/AuthContext';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
+import PoliceLogin from './pages/PoliceLogin';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SubmitReport from './pages/SubmitReport';
@@ -63,6 +65,8 @@ function App() {
       {/* Public routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={isAuthenticated ? <RoleDashboardRedirect /> : <Login />} />
+      <Route path="/admin/login" element={isAuthenticated ? <RoleDashboardRedirect /> : <AdminLogin />} />
+      <Route path="/police/login" element={isAuthenticated ? <RoleDashboardRedirect /> : <PoliceLogin />} />
       <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} />
 
       {/* ===== CITIZEN ROUTES (user role only) ===== */}
