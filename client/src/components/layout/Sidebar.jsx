@@ -6,26 +6,26 @@ export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const isPolice = user?.role === 'police';
 
-  // Citizen links — only their own reporting flow
+  // Citizen links
   const userLinks = [
-    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { to: '/submit-report', icon: '📸', label: 'Submit Report' },
-    { to: '/report-history', icon: '📋', label: 'Report History' },
-    { to: '/profile', icon: '👤', label: 'My Profile' },
+    { to: '/dashboard', label: 'Overview' },
+    { to: '/submit-report', label: 'New Report' },
+    { to: '/report-history', label: 'My Reports' },
+    { to: '/profile', label: 'Profile' },
   ];
 
-  // Police links — review reports, map, basic stats
+  // Police links
   const policeLinks = [
-    { to: '/police', icon: '🏠', label: 'Police Dashboard' },
-    { to: '/police/reports', icon: '📑', label: 'Review Reports' },
+    { to: '/police', label: 'Live Feed' },
+    { to: '/police/reports', label: 'Review Violations' },
   ];
 
-  // Admin links — full system management
+  // Admin links
   const adminLinks = [
-    { to: '/admin', icon: '🏠', label: 'Admin Dashboard' },
-    { to: '/admin/reports', icon: '📑', label: 'Manage Reports' },
-    { to: '/admin/users', icon: '👥', label: 'Manage Users' },
-    { to: '/analytics', icon: '📈', label: 'Analytics' },
+    { to: '/admin', label: 'Dashboard' },
+    { to: '/admin/reports', label: 'All Reports' },
+    { to: '/admin/users', label: 'User Directory' },
+    { to: '/analytics', label: 'System Analytics' },
   ];
 
   const handleLogout = () => {
@@ -34,15 +34,13 @@ export default function Sidebar({ isOpen, onClose }) {
     onClose();
   };
 
-  const getRoleBadge = () => {
+  const getRoleLabel = () => {
     switch (user?.role) {
-      case 'admin': return { text: 'System Admin', color: '#ef4444' };
-      case 'police': return { text: 'Traffic Police', color: '#0ea5e9' };
-      default: return { text: 'Citizen', color: '#22c55e' };
+      case 'admin': return 'Administrator';
+      case 'police': return 'Traffic Officer';
+      default: return 'Authorized Citizen';
     }
   };
-
-  const roleBadge = getRoleBadge();
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -50,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="sidebar-logo">R</div>
         <div className="sidebar-brand">
           <div className="sidebar-brand-name">RoadSuraksha</div>
-          <div className="sidebar-brand-sub">Traffic Violation System</div>
+          <div className="sidebar-brand-sub">Management System</div>
         </div>
       </div>
 
@@ -66,7 +64,6 @@ export default function Sidebar({ isOpen, onClose }) {
                 className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                 onClick={onClose}
               >
-                <span className="sidebar-link-icon">{link.icon}</span>
                 {link.label}
               </NavLink>
             ))}
@@ -76,7 +73,7 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* Police-specific links */}
         {isPolice && (
           <div className="sidebar-section">
-            <div className="sidebar-section-title">Police Portal</div>
+            <div className="sidebar-section-title">Operations</div>
             {policeLinks.map(link => (
               <NavLink
                 key={link.to}
@@ -84,7 +81,6 @@ export default function Sidebar({ isOpen, onClose }) {
                 className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                 onClick={onClose}
               >
-                <span className="sidebar-link-icon">{link.icon}</span>
                 {link.label}
               </NavLink>
             ))}
@@ -102,7 +98,6 @@ export default function Sidebar({ isOpen, onClose }) {
                 className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                 onClick={onClose}
               >
-                <span className="sidebar-link-icon">{link.icon}</span>
                 {link.label}
               </NavLink>
             ))}
@@ -111,18 +106,20 @@ export default function Sidebar({ isOpen, onClose }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">
+        <div className="sidebar-user" style={{ marginBottom: 'var(--space-md)' }}>
           <div className="sidebar-avatar">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{user?.name || 'User'}</div>
             <div style={{
-              fontSize: 'var(--font-xs)',
-              color: roleBadge.color,
-              fontWeight: 600
+              fontSize: '10px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: 'var(--text-tertiary)',
+              marginTop: '2px'
             }}>
-              {roleBadge.text}
+              {getRoleLabel()}
             </div>
           </div>
         </div>
@@ -132,9 +129,8 @@ export default function Sidebar({ isOpen, onClose }) {
           title="Logout"
           style={{
             width: '100%',
-            marginTop: 'var(--space-sm)',
             justifyContent: 'center',
-            color: 'var(--danger-500)'
+            color: '#ef4444'
           }}
         >
           Logout

@@ -1,146 +1,146 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 
 export default function Home() {
   const { isAuthenticated, isAdmin } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   const features = [
     {
-      icon: '📸',
-      title: 'Easy Reporting',
-      desc: 'Capture or upload photos/videos of traffic violations with automatic GPS location detection.'
+      title: 'AI Violation Detection',
+      desc: 'Automatic recognition of helmet violations, triple riding, and number plates using state-of-the-art computer vision.'
     },
     {
-      icon: '🤖',
-      title: 'AI Detection',
-      desc: 'Automatic violation detection, helmet recognition, number plate OCR, and vehicle identification.'
+      title: 'Professional Analytics',
+      desc: 'Beautiful, data-driven insights with heatmaps and violation trends for traffic management authorities.'
     },
     {
-      icon: '📊',
-      title: 'Analytics Dashboard',
-      desc: 'Comprehensive charts, heatmaps, and statistics for data-driven traffic management.'
-    },
-    {
-      icon: '🗺️',
-      title: 'Location Tracking',
-      desc: 'Interactive maps showing violation hotspots and area-wise traffic violation reports.'
-    },
-    {
-      icon: '🛡️',
-      title: 'Admin Panel',
-      desc: 'Secure dashboard for traffic police to review, approve, or reject violation reports.'
-    },
-    {
-      icon: '🔒',
-      title: 'Secure & Private',
-      desc: 'JWT-based authentication, encrypted passwords, and role-based access control.'
+      title: 'Citizen Empowerment',
+      desc: 'A simple, secure platform for citizens to contribute to road safety by reporting violations in real-time.'
     }
   ];
 
   return (
-    <div>
+    <div className="home-container" style={{ background: 'var(--bg-primary)', minHeight: '100vh', color: 'white' }}>
       {/* Hero Section */}
-      <section className="hero">
-        <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 10 }}>
-          <div className="theme-toggle">
-            <button
-              className={`theme-toggle-option ${theme === 'light' ? 'active' : ''}`}
-              onClick={() => theme !== 'light' && toggleTheme()}
-            >☀️</button>
-            <button
-              className={`theme-toggle-option ${theme === 'dark' ? 'active' : ''}`}
-              onClick={() => theme !== 'dark' && toggleTheme()}
-            >🌙</button>
+      <section className="hero" style={{ 
+        paddingTop: 'var(--space-3xl)', 
+        paddingBottom: 'var(--space-3xl)',
+        textAlign: 'center',
+        maxWidth: '900px',
+        margin: '0 auto'
+      }}>
+        <div className="fade-in" style={{ animation: 'fadeIn 1s ease-out' }}>
+          <div style={{ 
+            fontSize: 'var(--font-sm)', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.2em', 
+            color: 'var(--text-tertiary)',
+            marginBottom: 'var(--space-md)',
+            fontWeight: 600
+          }}>
+            AI-Powered Traffic Safety
           </div>
-        </div>
-
-        <div className="hero-content">
-          <div className="hero-badge">
-            🚦 AI-Powered Traffic Safety
-          </div>
-          <h1 className="hero-title">
-            Smart Traffic <span>Violation Reporting</span> & Analytics
+          
+          <h1 className="serif" style={{ 
+            fontSize: 'var(--font-5xl)', 
+            lineHeight: 1, 
+            marginBottom: 'var(--space-lg)',
+            letterSpacing: '-0.03em'
+          }}>
+            Transforming Road Safety <br />
+            with <span style={{ opacity: 0.7 }}>Intelligent Monitoring</span>
           </h1>
-          <p className="hero-description">
-            Empowering citizens and traffic police with AI-powered violation detection,
-            real-time reporting, and comprehensive analytics for safer roads.
+
+          <p style={{ 
+            fontSize: 'var(--font-xl)', 
+            color: 'var(--text-secondary)', 
+            maxWidth: '650px', 
+            margin: '0 auto var(--space-2xl) auto',
+            lineHeight: 1.5
+          }}>
+            RoadSuraksha combines computer vision and real-time analytics to create a safer, 
+            smarter environment for both citizens and authorities.
           </p>
-          <div className="hero-actions">
+
+          <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center' }}>
             {isAuthenticated ? (
-              <>
-                <Link to="/dashboard" className="btn btn-primary btn-lg">
-                  📊 Go to Dashboard
-                </Link>
-                {isAdmin && (
-                  <Link to="/admin" className="btn btn-secondary btn-lg" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
-                    🛡️ Admin Panel
-                  </Link>
-                )}
-              </>
+              <Link to="/dashboard" className="btn btn-primary btn-lg">
+                Enter Dashboard
+              </Link>
             ) : (
               <>
                 <Link to="/register" className="btn btn-primary btn-lg">
-                  🚀 Get Started
+                  Get Started
                 </Link>
-                <Link to="/login" className="btn hero-btn-outline btn-lg">
-                  🔑 Sign In
+                <Link to="/login" className="btn btn-secondary btn-lg">
+                  Sign In
                 </Link>
               </>
             )}
           </div>
-
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <div className="hero-stat-value">10K+</div>
-              <div className="hero-stat-label">Reports Filed</div>
-            </div>
-            <div className="hero-stat">
-              <div className="hero-stat-value">95%</div>
-              <div className="hero-stat-label">AI Accuracy</div>
-            </div>
-            <div className="hero-stat">
-              <div className="hero-stat-value">50+</div>
-              <div className="hero-stat-label">Cities Covered</div>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features" id="features">
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
-          <h2 style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>
-            Powerful Features
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-lg)' }}>
-            Everything you need for smart traffic violation management
-          </p>
+      {/* Hero Stats (Minimalist) */}
+      <section style={{ 
+        paddingBottom: 'var(--space-3xl)',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 'var(--space-3xl)',
+        borderBottom: '1px solid var(--border-color)',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>10K+</div>
+          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Reports</div>
         </div>
-        <div className="features-grid">
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>95%</div>
+          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>AI Accuracy</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>50+</div>
+          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Cities</div>
+        </div>
+      </section>
+
+      {/* Features Grid (Datanauts style - purely text & whitespace) */}
+      <section style={{ 
+        padding: 'var(--space-3xl) var(--space-md)',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: 'var(--space-3xl)' 
+        }}>
           {features.map((f, i) => (
-            <div className="feature-card slide-up" key={i} style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="feature-icon">{f.icon}</div>
-              <h3 className="feature-title">{f.title}</h3>
-              <p className="feature-desc">{f.desc}</p>
+            <div key={i} className="slide-up" style={{ animationDelay: `${i * 0.2}s` }}>
+              <h3 className="serif" style={{ fontSize: 'var(--font-2xl)', marginBottom: 'var(--space-md)' }}>
+                {f.title}
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-md)', lineHeight: 1.6 }}>
+                {f.desc}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Professional Footer */}
       <footer style={{
-        textAlign: 'center',
-        padding: 'var(--space-xl)',
+        padding: 'var(--space-3xl) var(--space-md)',
         borderTop: '1px solid var(--border-color)',
-        color: 'var(--text-tertiary)',
-        fontSize: 'var(--font-sm)',
+        textAlign: 'center',
         background: 'var(--bg-secondary)'
       }}>
-        <p>© 2024 RoadSuraksha — Smart Traffic Violation Reporting & Analytics System</p>
-        <p style={{ marginTop: 'var(--space-xs)' }}>
-          Built with React, Node.js, MongoDB & AI 🤖
+        <div className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-sm)' }}>
+          RoadSuraksha
+        </div>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)' }}>
+          © 2024 RoadSuraksha. A Professional Traffic Violation Management System.
         </p>
       </footer>
     </div>

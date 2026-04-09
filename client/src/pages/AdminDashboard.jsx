@@ -37,129 +37,102 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Admin Dashboard 🛡️</h1>
-        <p className="page-subtitle">Overview of all traffic violation reports and system metrics</p>
+    <div className="fade-in">
+      <div className="page-header" style={{ marginBottom: 'var(--space-2xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-xl)' }}>
+        <h1 className="page-title">Executive Control</h1>
+        <p className="page-subtitle">Real-time surveillance monitoring and system-wide violation metrics.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <div className="stat-card purple">
-          <div className="stat-icon">📊</div>
-          <div className="stat-info">
-            <div className="stat-label">Total Reports</div>
-            <div className="stat-value">{stats?.totalReports || 0}</div>
-          </div>
+      {/* Stats Grid - High contrast and minimalist */}
+      <div className="stats-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
+        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Total Reports</div>
+          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats?.totalReports || 0}</div>
         </div>
-        <div className="stat-card orange">
-          <div className="stat-icon">⏳</div>
-          <div className="stat-info">
-            <div className="stat-label">Pending Review</div>
-            <div className="stat-value">{stats?.pendingReports || 0}</div>
-          </div>
+        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fbbf24', marginBottom: 'var(--space-sm)' }}>Pending Verification</div>
+          <div className="serif" style={{ fontSize: 'var(--font-4xl)', color: '#fbbf24' }}>{stats?.pendingReports || 0}</div>
         </div>
-        <div className="stat-card green">
-          <div className="stat-icon">✅</div>
-          <div className="stat-info">
-            <div className="stat-label">Approved</div>
-            <div className="stat-value">{stats?.approvedReports || 0}</div>
-          </div>
+        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4ade80', marginBottom: 'var(--space-sm)' }}>Confirmed Violations</div>
+          <div className="serif" style={{ fontSize: 'var(--font-4xl)', color: '#4ade80' }}>{stats?.approvedReports || 0}</div>
         </div>
-        <div className="stat-card red">
-          <div className="stat-icon">❌</div>
-          <div className="stat-info">
-            <div className="stat-label">Rejected</div>
-            <div className="stat-value">{stats?.rejectedReports || 0}</div>
-          </div>
-        </div>
-        <div className="stat-card blue">
-          <div className="stat-icon">📅</div>
-          <div className="stat-info">
-            <div className="stat-label">This Week</div>
-            <div className="stat-value">{stats?.weeklyCount || 0}</div>
-          </div>
-        </div>
-        <div className="stat-card pink">
-          <div className="stat-icon">📆</div>
-          <div className="stat-info">
-            <div className="stat-label">This Month</div>
-            <div className="stat-value">{stats?.monthlyCount || 0}</div>
-          </div>
+        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Current Month</div>
+          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats?.monthlyCount || 0}</div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)', flexWrap: 'wrap' }}>
-        <Link to="/admin/reports" className="btn btn-primary">📑 Manage Reports</Link>
-        <Link to="/admin/users" className="btn btn-secondary">👥 Manage Users</Link>
-        <Link to="/analytics" className="btn btn-secondary">📈 Full Analytics</Link>
+      {/* High Priority Actions */}
+      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-3xl)', flexWrap: 'wrap' }}>
+        <Link to="/admin/reports" className="btn btn-primary">Review Queue</Link>
+        <Link to="/admin/users" className="btn btn-secondary">User Management</Link>
+        <Link to="/analytics" className="btn btn-secondary">System Analytics</Link>
       </div>
 
-      {/* Top Violations */}
+      {/* Violations Distribution */}
       {stats?.violationsByType?.length > 0 && (
-        <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
-          <div className="card-header">
-            <h3 className="card-title">Top Violations</h3>
-          </div>
-          <div className="card-body">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
-              {stats.violationsByType.slice(0, 6).map(v => (
-                <div key={v._id} style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-sm)',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--bg-tertiary)',
-                  borderRadius: 'var(--radius-lg)',
-                  flex: '1 0 auto', minWidth: '160px'
-                }}>
-                  <span className="violation-badge">{formatViolation(v._id)}</span>
-                  <span style={{ fontWeight: 700, fontSize: 'var(--font-lg)' }}>{v.count}</span>
+        <div style={{ marginBottom: 'var(--space-3xl)' }}>
+          <h3 className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>Surveillance Taxonomy</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
+            {stats.violationsByType.slice(0, 8).map(v => (
+              <div key={v._id} className="card" style={{
+                padding: 'var(--space-lg)',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid var(--border-color)',
+              }}>
+                <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-xs)' }}>
+                  {formatViolation(v._id)}
                 </div>
-              ))}
-            </div>
+                <div className="serif" style={{ fontSize: 'var(--font-2xl)' }}>{v.count}</div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Recent Reports Table */}
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">Recent Reports</h3>
-          <Link to="/admin/reports" className="btn btn-ghost btn-sm">View All →</Link>
+      {/* Audit Log (Recent Reports) */}
+      <div className="card" style={{ borderRadius: 'var(--radius-xl)' }}>
+        <div className="card-header" style={{ borderBottom: '1px solid var(--border-color)', padding: 'var(--space-lg) var(--space-xl)' }}>
+          <h3 className="serif" style={{ fontSize: 'var(--font-xl)' }}>Security Audit Log</h3>
+          <Link to="/admin/reports" className="btn btn-ghost btn-sm">Full Investigation Archive</Link>
         </div>
         <div className="card-body" style={{ padding: 0 }}>
           {recentReports.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">📭</div>
-              <h3 className="empty-state-title">No reports yet</h3>
+              <p className="empty-state-text">No surveillance entries recorded.</p>
             </div>
           ) : (
             <div className="table-container" style={{ border: 'none' }}>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Reporter</th>
-                    <th>Type</th>
-                    <th>Location</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>AI Plate</th>
+                    <th>Entry Entity</th>
+                    <th>Classification</th>
+                    <th>Origin</th>
+                    <th>Timestamp</th>
+                    <th>Decision</th>
+                    <th>Metadata</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentReports.map(r => (
                     <tr key={r._id}>
-                      <td style={{ fontWeight: 500 }}>{r.user?.name || 'Unknown'}</td>
-                      <td><span className="violation-badge">{formatViolation(r.violationType)}</span></td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-                        {r.location?.address || 'GPS'}
+                      <td style={{ fontWeight: 600 }}>{r.user?.name || 'Authorized Subsystem'}</td>
+                      <td>
+                        <span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span>
                       </td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
+                        {r.location?.address || 'GPS SECURED'}
+                      </td>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
                         {formatDate(r.createdAt)}
                       </td>
-                      <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
-                      <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-sm)' }}>
-                        {r.aiResults?.numberPlate || '—'}
+                      <td>
+                        <span className={`badge badge-${r.status}`}>{r.status}</span>
+                      </td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
+                        {r.aiResults?.numberPlate || 'ENCRYPTED'}
                       </td>
                     </tr>
                   ))}
