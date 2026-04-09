@@ -62,7 +62,7 @@ export default function Dashboard() {
         <div className="stat-card" style={{ borderLeft: '4px solid var(--primary-700)' }}>
           <div className="stat-info">
             <div className="stat-label">Total Submissions</div>
-            <div className="stat-value" style={{ color: 'var(--primary-800)' }}>{stats.total}</div>
+            <div className="stat-value" style={{ color: 'var(--primary-600)' }}>{stats.total}</div>
           </div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid #fbbf24' }}>
@@ -107,7 +107,7 @@ export default function Dashboard() {
                     <tbody>
                       {reports.map(report => (
                         <tr key={report._id}>
-                          <td style={{ fontWeight: 700, color: 'var(--primary-800)' }}>
+                          <td style={{ fontWeight: 700, color: 'var(--primary-600)' }}>
                             {formatViolationType(report.violationType)}
                           </td>
                           <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)' }}>
@@ -133,7 +133,7 @@ export default function Dashboard() {
         <div>
           <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
             <div className="card-body">
-              <h4 style={{ fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-md)' }}>Quick Actions</h4>
+              <h4 style={{ fontWeight: 800, color: 'var(--primary-600)', marginBottom: 'var(--space-md)' }}>Quick Actions</h4>
               <Link to="/submit-report" className="btn btn-primary" style={{ width: '100%', marginBottom: 'var(--space-sm)' }}>
                 New Violation Entry
               </Link>
@@ -145,7 +145,7 @@ export default function Dashboard() {
 
           <div className="card">
             <div className="card-body">
-              <h4 style={{ fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-xs)' }}>Safety Compliance</h4>
+              <h4 style={{ fontWeight: 800, color: 'var(--primary-600)', marginBottom: 'var(--space-xs)' }}>Safety Compliance</h4>
               <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--space-md)' }}>Help maintain traffic order.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                 <div style={{ background: 'var(--bg-tertiary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--primary-600)' }}>
