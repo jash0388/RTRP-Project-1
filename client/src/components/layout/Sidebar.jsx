@@ -8,24 +8,24 @@ export default function Sidebar({ isOpen, onClose }) {
 
   // Citizen links
   const userLinks = [
-    { to: '/dashboard', label: 'Overview' },
-    { to: '/submit-report', label: 'New Report' },
-    { to: '/report-history', label: 'My Reports' },
-    { to: '/profile', label: 'Profile' },
+    { to: '/dashboard', label: 'Dashboard Home' },
+    { to: '/submit-report', label: 'File New Report' },
+    { to: '/report-history', label: 'My Submissions' },
+    { to: '/profile', label: 'User Profile' },
   ];
 
   // Police links
   const policeLinks = [
-    { to: '/police', label: 'Live Feed' },
-    { to: '/police/reports', label: 'Review Violations' },
+    { to: '/police', label: 'Violation Feed' },
+    { to: '/police/reports', label: 'Review Pending' },
   ];
 
   // Admin links
   const adminLinks = [
-    { to: '/admin', label: 'Dashboard' },
-    { to: '/admin/reports', label: 'All Reports' },
-    { to: '/admin/users', label: 'User Directory' },
-    { to: '/analytics', label: 'System Analytics' },
+    { to: '/admin', label: 'Admin Overview' },
+    { to: '/admin/reports', label: 'System Reports' },
+    { to: '/admin/users', label: 'Manage Users' },
+    { to: '/analytics', label: 'Analytics Hub' },
   ];
 
   const handleLogout = () => {
@@ -36,24 +36,23 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const getRoleLabel = () => {
     switch (user?.role) {
-      case 'admin': return 'Administrator';
-      case 'police': return 'Traffic Officer';
-      default: return 'Authorized Citizen';
+      case 'admin': return 'System Administrator';
+      case 'police': return 'Traffic Enforcement';
+      default: return 'Citizen User';
     }
   };
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <div className="sidebar-logo">R</div>
+        <div className="sidebar-logo">RS</div>
         <div className="sidebar-brand">
           <div className="sidebar-brand-name">RoadSuraksha</div>
-          <div className="sidebar-brand-sub">Management System</div>
+          <div className="sidebar-brand-sub">Traffic Monitoring</div>
         </div>
       </div>
 
       <nav className="sidebar-nav">
-        {/* Only show citizen links for 'user' role */}
         {user?.role === 'user' && (
           <div className="sidebar-section">
             <div className="sidebar-section-title">Citizen Portal</div>
@@ -70,7 +69,6 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Police-specific links */}
         {isPolice && (
           <div className="sidebar-section">
             <div className="sidebar-section-title">Operations</div>
@@ -87,7 +85,6 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Admin-specific links */}
         {isAdmin && (
           <div className="sidebar-section">
             <div className="sidebar-section-title">Administration</div>
@@ -115,25 +112,20 @@ export default function Sidebar({ isOpen, onClose }) {
             <div style={{
               fontSize: '10px',
               textTransform: 'uppercase',
-              letterSpacing: '0.1em',
               color: 'var(--text-tertiary)',
-              marginTop: '2px'
+              marginTop: '2px',
+              fontWeight: 700
             }}>
               {getRoleLabel()}
             </div>
           </div>
         </div>
         <button
-          className="btn btn-ghost btn-sm"
+          className="btn btn-secondary btn-sm"
           onClick={handleLogout}
-          title="Logout"
-          style={{
-            width: '100%',
-            justifyContent: 'center',
-            color: '#ef4444'
-          }}
+          style={{ width: '100%', borderColor: '#ef4444', color: '#ef4444' }}
         >
-          Logout
+          Sign Out
         </button>
       </div>
     </aside>

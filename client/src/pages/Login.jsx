@@ -24,7 +24,7 @@ export default function Login() {
         default: navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Verification failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -41,55 +41,48 @@ export default function Login() {
         default: navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message || 'Google Login failed');
+      setError(err.message || 'Google authentication unsuccessful.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleError = () => {
-    setError('Google Login was unsuccessful. Try again.');
-  };
-
   return (
-    <div className="auth-page" style={{ background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 'var(--space-md)' }}>
-      <div className="auth-card glass fade-in" style={{ 
-        maxWidth: '440px', 
+    <div style={{ background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 'var(--space-md)' }}>
+      <div className="card fade-in" style={{ 
+        maxWidth: '420px', 
         width: '100%', 
-        padding: 'var(--space-3xl) var(--space-2xl)', 
-        borderRadius: 'var(--radius-2xl)',
-        background: 'var(--bg-card)',
+        padding: 'var(--space-2xl)', 
+        borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-color)',
-        textAlign: 'center'
+        background: 'var(--bg-secondary)',
+        boxShadow: 'var(--shadow-lg)'
       }}>
-        <div className="auth-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-2xl)' }}>
-          <div className="auth-logo-icon" style={{ 
-            width: '56px', 
-            height: '56px', 
-            background: 'white', 
-            color: 'black', 
-            borderRadius: 'var(--radius-lg)',
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            background: 'var(--primary-700)', 
+            color: 'white', 
+            borderRadius: 'var(--radius-md)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 'var(--font-xl)',
-            fontWeight: 800
-          }}>R</div>
-          <div className="serif" style={{ fontSize: 'var(--font-2xl)', fontWeight: 700 }}>RoadSuraksha</div>
+            fontSize: '1.5rem',
+            fontWeight: 900,
+            margin: '0 auto var(--space-md) auto'
+          }}>RS</div>
+          <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--primary-800)', marginBottom: '4px' }}>Citizen Portal</h2>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Official Login</p>
         </div>
-
-        <h2 className="serif" style={{ fontSize: 'var(--font-3xl)', marginBottom: 'var(--space-xs)' }}>Welcome Back</h2>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-2xl)' }}>
-          Access your secure management portal
-        </p>
 
         {error && (
           <div style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            borderRadius: 'var(--radius-md)',
+            background: '#fef2f2',
+            border: '1px solid #fee2e2',
+            borderRadius: 'var(--radius-sm)',
             padding: 'var(--space-md)',
-            color: '#f87171',
+            color: '#b91c1c',
             fontSize: 'var(--font-xs)',
             marginBottom: 'var(--space-lg)',
             textAlign: 'center'
@@ -98,58 +91,55 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)' }}>Email Address</label>
+            <label className="form-label">Email Address</label>
             <input
               type="email"
               className="form-input"
-              placeholder="name@company.com"
-              style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', color: 'white' }}
+              placeholder="Enter your registered email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              id="login-email"
             />
           </div>
 
           <div className="form-group" style={{ marginBottom: 'var(--space-xl)' }}>
-            <label className="form-label" style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)' }}>Password</label>
+            <label className="form-label">Password</label>
             <input
               type="password"
               className="form-input"
               placeholder="••••••••"
-              style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', color: 'white' }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              id="login-password"
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '1rem', marginBottom: 'var(--space-lg)' }} disabled={loading} id="login-submit">
-            {loading ? 'Authenticating...' : 'Sign In'}
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', fontSize: 'var(--font-sm)', fontWeight: 700, marginBottom: 'var(--space-lg)' }} disabled={loading}>
+            {loading ? 'Verifying...' : 'Log In to System'}
           </button>
         </form>
 
-        <div style={{ marginTop: 'var(--space-sm)', marginBottom: 'var(--space-lg)', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          — or continue with —
+        <div style={{ display: 'flex', alignItems: 'center', margin: 'var(--space-lg) 0' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+          <div style={{ padding: '0 10px', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>Social Access</div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-xl)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-lg)' }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            theme="outline"
+            onError={() => setError('Google Login Failed')}
+            theme="filled_blue"
             size="large"
             width="100%"
-            text="signin_with"
           />
         </div>
 
-        <div className="auth-footer" style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)' }}>
-          New to the platform?{' '}
-          <Link to="/register" style={{ color: 'white', fontWeight: 600 }}>Create an account</Link>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--font-sm)', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--space-lg)', marginTop: 'var(--space-md)' }}>
+          Identity not verified?{' '}
+          <Link to="/register" style={{ color: 'var(--primary-700)', fontWeight: 700 }}>Register as Citizen</Link>
         </div>
       </div>
     </div>

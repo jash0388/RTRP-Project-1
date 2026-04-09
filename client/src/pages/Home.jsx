@@ -2,78 +2,71 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const features = [
+  const services = [
     {
-      title: 'AI Violation Detection',
-      desc: 'Automatic recognition of helmet violations, triple riding, and number plates using state-of-the-art computer vision.'
+      title: 'Violation Reporting',
+      desc: 'Submit photographic or video evidence of traffic violations encountered on public roads.',
+      link: '/submit-report',
+      label: 'File a Report'
     },
     {
-      title: 'Professional Analytics',
-      desc: 'Beautiful, data-driven insights with heatmaps and violation trends for traffic management authorities.'
+      title: 'Status Tracking',
+      desc: 'Track the real-time status of your submitted reports and view verification outcomes.',
+      link: '/report-history',
+      label: 'Track Submissions'
     },
     {
-      title: 'Citizen Empowerment',
-      desc: 'A simple, secure platform for citizens to contribute to road safety by reporting violations in real-time.'
+      title: 'Safety Guidelines',
+      desc: 'Review official road safety protocols and guidelines for traffic compliance.',
+      link: '#',
+      label: 'View Guidelines'
     }
   ];
 
   return (
-    <div className="home-container" style={{ background: 'var(--bg-primary)', minHeight: '100vh', color: 'white' }}>
+    <div className="fade-in">
       {/* Hero Section */}
-      <section className="hero" style={{ 
-        paddingTop: 'var(--space-3xl)', 
-        paddingBottom: 'var(--space-3xl)',
+      <section style={{ 
+        background: 'var(--primary-800)', 
+        color: 'white',
+        padding: 'var(--space-3xl) var(--space-xl)',
         textAlign: 'center',
-        maxWidth: '900px',
-        margin: '0 auto'
+        borderRadius: 'var(--radius-xl)',
+        marginBottom: 'var(--space-2xl)',
+        boxShadow: 'var(--shadow-lg)'
       }}>
-        <div className="fade-in" style={{ animation: 'fadeIn 1s ease-out' }}>
-          <div style={{ 
-            fontSize: 'var(--font-sm)', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.2em', 
-            color: 'var(--text-tertiary)',
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ 
+            fontSize: 'var(--font-4xl)', 
+            fontWeight: 800, 
             marginBottom: 'var(--space-md)',
-            fontWeight: 600
+            letterSpacing: '-0.02em'
           }}>
-            AI-Powered Traffic Safety
-          </div>
-          
-          <h1 className="serif" style={{ 
-            fontSize: 'var(--font-5xl)', 
-            lineHeight: 1, 
-            marginBottom: 'var(--space-lg)',
-            letterSpacing: '-0.03em'
-          }}>
-            Transforming Road Safety <br />
-            with <span style={{ opacity: 0.7 }}>Intelligent Monitoring</span>
+            RoadSuraksha: Citizen Traffic Reporting Portal
           </h1>
-
           <p style={{ 
-            fontSize: 'var(--font-xl)', 
-            color: 'var(--text-secondary)', 
-            maxWidth: '650px', 
-            margin: '0 auto var(--space-2xl) auto',
-            lineHeight: 1.5
+            fontSize: 'var(--font-lg)', 
+            opacity: 0.9, 
+            marginBottom: 'var(--space-xl)',
+            lineHeight: 1.6
           }}>
-            RoadSuraksha combines computer vision and real-time analytics to create a safer, 
-            smarter environment for both citizens and authorities.
+            An official initiative to enhance road safety through community participation and AI-driven monitoring. 
+            Report violations securely and contribute to safer roads for everyone.
           </p>
-
           <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center' }}>
             {isAuthenticated ? (
-              <Link to="/dashboard" className="btn btn-primary btn-lg">
-                Enter Dashboard
+              <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ color: 'var(--primary-800)', fontWeight: 700 }}>
+                Go to Dashboard
               </Link>
             ) : (
               <>
-                <Link to="/register" className="btn btn-primary btn-lg">
-                  Get Started
+                <Link to="/register" className="btn btn-secondary btn-lg" style={{ color: 'var(--primary-800)', fontWeight: 700 }}>
+                  Citizen Registration
                 </Link>
-                <Link to="/login" className="btn btn-secondary btn-lg">
-                  Sign In
+                <Link to="/login" className="btn btn-ghost btn-lg" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
+                  Portal Login
                 </Link>
               </>
             )}
@@ -81,66 +74,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Hero Stats (Minimalist) */}
-      <section style={{ 
-        paddingBottom: 'var(--space-3xl)',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 'var(--space-3xl)',
-        borderBottom: '1px solid var(--border-color)',
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>10K+</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Reports</div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>95%</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>AI Accuracy</div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 700 }}>50+</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Cities</div>
-        </div>
-      </section>
+      {/* Services Section */}
+      <div style={{ marginBottom: 'var(--space-xl)' }}>
+        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-sm)' }}>
+          Online Citizen Services
+        </h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-xl)' }}>
+          Access official traffic violation management services directly through the portal.
+        </p>
 
-      {/* Features Grid (Datanauts style - purely text & whitespace) */}
-      <section style={{ 
-        padding: 'var(--space-3xl) var(--space-md)',
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: 'var(--space-3xl)' 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gap: 'var(--space-xl)' 
         }}>
-          {features.map((f, i) => (
-            <div key={i} className="slide-up" style={{ animationDelay: `${i * 0.2}s` }}>
-              <h3 className="serif" style={{ fontSize: 'var(--font-2xl)', marginBottom: 'var(--space-md)' }}>
-                {f.title}
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-md)', lineHeight: 1.6 }}>
-                {f.desc}
-              </p>
+          {services.map((service, i) => (
+            <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="card-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                <h3 className="card-title" style={{ color: 'var(--primary-800)' }}>{service.title}</h3>
+              </div>
+              <div className="card-body" style={{ flex: 1 }}>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', lineHeight: 1.5 }}>
+                  {service.desc}
+                </p>
+                <Link to={service.link} className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+                  {service.label}
+                </Link>
+              </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Professional Footer */}
-      <footer style={{
-        padding: 'var(--space-3xl) var(--space-md)',
+      {/* Official Footnote */}
+      <footer style={{ 
+        marginTop: 'var(--space-3xl)', 
+        paddingTop: 'var(--space-xl)',
         borderTop: '1px solid var(--border-color)',
         textAlign: 'center',
-        background: 'var(--bg-secondary)'
+        paddingBottom: 'var(--space-xl)'
       }}>
-        <div className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-sm)' }}>
-          RoadSuraksha
+        <div style={{ fontWeight: 700, color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Ministry of Road Transport & Safety | Official Citizen Portal
         </div>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)' }}>
-          © 2024 RoadSuraksha. A Professional Traffic Violation Management System.
+        <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginTop: '4px' }}>
+          © 2024 RoadSuraksha System. All Rights Reserved.
         </p>
       </footer>
     </div>

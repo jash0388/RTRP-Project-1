@@ -67,10 +67,11 @@ export default function PoliceReports() {
           L.marker([lat, lng])
             .addTo(mapInstanceRef.current)
             .bindPopup(`
-              <strong>${formatViolation(r.violationType)}</strong><br/>
-              ${r.location.address || ''}<br/>
-              Status: ${r.status}<br/>
-              ${r.aiResults?.numberPlate ? 'Plate: ' + r.aiResults.numberPlate : ''}
+              <div style="font-family: Inter, sans-serif; padding: 4px;">
+                <strong style="color: #1e40af">${formatViolation(r.violationType)}</strong><br/>
+                <span style="font-size: 11px; color: #64748b">${r.location.address || 'GPS Location'}</span><br/>
+                <span style="font-size: 11px; font-weight: 700">Status: ${r.status.toUpperCase()}</span>
+              </div>
             `);
         }
       });
@@ -160,96 +161,84 @@ export default function PoliceReports() {
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
             justifyContent: 'center', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '16px'
           }}>▶</div>
-          {media.length > 1 && (
-            <div style={{
-              position: 'absolute', top: 2, right: 2, background: 'rgba(99,102,241,0.9)',
-              borderRadius: 'var(--radius-sm)', fontSize: '9px', padding: '1px 4px',
-              color: '#fff', fontWeight: 700
-            }}>{media.length}</div>
-          )}
         </div>
       );
     }
     return (
       <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative' }}>
         <img src={first.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        {media.length > 1 && (
-          <div style={{
-            position: 'absolute', top: 2, right: 2, background: 'rgba(99,102,241,0.9)',
-            borderRadius: 'var(--radius-sm)', fontSize: '9px', padding: '1px 4px',
-            color: '#fff', fontWeight: 700
-          }}>{media.length}</div>
-        )}
       </div>
     );
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Review Reports 📑</h1>
-        <p className="page-subtitle">Review evidence and approve or reject violation reports</p>
+    <div className="fade-in">
+      <div className="page-header" style={{ marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Enforcement Review Feed</h1>
+        <p className="page-subtitle">Inspect submitted evidence and perform official verification of traffic violations.</p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="filter-bar">
-        <select
-          className="form-select"
-          value={filterStatus}
-          onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
+      {/* Control Bar */}
+      <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-md)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', gap: 'var(--space-sm)' }}>
+            <select
+              className="form-select"
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+              style={{ maxWidth: '200px' }}
+            >
+              <option value="">Filter: All Case Status</option>
+              <option value="pending">Awaiting Review</option>
+              <option value="approved">Verified</option>
+              <option value="rejected">Dismissed</option>
+            </select>
 
-        <select
-          className="form-select"
-          value={filterType}
-          onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-        >
-          <option value="">All Types</option>
-          <option value="no_helmet">No Helmet</option>
-          <option value="signal_jump">Signal Jump</option>
-          <option value="wrong_parking">Wrong Parking</option>
-          <option value="overspeeding">Overspeeding</option>
-          <option value="wrong_side">Wrong Side</option>
-          <option value="no_seatbelt">No Seatbelt</option>
-          <option value="overloading">Overloading</option>
-          <option value="using_phone">Using Phone</option>
-          <option value="drunk_driving">Drunk Driving</option>
-          <option value="other">Other</option>
-        </select>
-
-        <button
-          className={`btn ${showMap ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setShowMap(!showMap)}
-        >
-          {showMap ? '📋 Table View' : '🗺️ Map View'}
-        </button>
-      </div>
-
-      {/* Map */}
-      {showMap && (
-        <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
-          <div className="card-header">
-            <h3 className="card-title">Violation Locations</h3>
+            <select
+              className="form-select"
+              value={filterType}
+              onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+              style={{ maxWidth: '200px' }}
+            >
+              <option value="">Filter: All Categories</option>
+              <option value="no_helmet">No Helmet</option>
+              <option value="signal_jump">Signal Jump</option>
+              <option value="wrong_parking">Wrong Parking</option>
+              <option value="overspeeding">Overspeeding</option>
+              <option value="wrong_side">Wrong Side</option>
+              <option value="no_seatbelt">No Seatbelt</option>
+              <option value="overloading">Overloading</option>
+              <option value="using_phone">Using Phone</option>
+              <option value="drunk_driving">Drunk Driving</option>
+              <option value="other">Other Violation</option>
+            </select>
           </div>
-          <div className="map-container">
+
+          <button
+            className={`btn ${showMap ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setShowMap(!showMap)}
+            style={{ minWidth: '140px' }}
+          >
+            {showMap ? 'Show Table View' : 'Show Location Map'}
+          </button>
+        </div>
+      </div>
+
+      {/* Map Overlay */}
+      {showMap && (
+        <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-sm)' }}>
+          <div className="map-container" style={{ borderRadius: 'var(--radius-lg)' }}>
             <div ref={mapRef} style={{ height: '100%', width: '100%' }}></div>
           </div>
         </div>
       )}
 
-      {/* Reports Table */}
+      {/* Investigation Records */}
       {loading ? (
         <div className="loader"><div className="spinner"></div></div>
       ) : reports.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <h3 className="empty-state-title">No reports found</h3>
-          <p className="empty-state-text">Try adjusting your filters</p>
+          <p className="empty-state-text">No pending investigation records found in the current registry.</p>
         </div>
       ) : (
         <div className="card">
@@ -259,13 +248,13 @@ export default function PoliceReports() {
                 <thead>
                   <tr>
                     <th>Evidence</th>
-                    <th>Violation</th>
-                    <th>Location</th>
-                    <th>AI Plate</th>
+                    <th>Classification</th>
+                    <th>Observation Area</th>
+                    <th>Identification</th>
                     <th>Vehicle</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>Date Registered</th>
+                    <th>Outcome</th>
+                    <th style={{ textAlign: 'right' }}>Audit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -276,22 +265,22 @@ export default function PoliceReports() {
                           {renderThumbnail(r.media)}
                         </div>
                       </td>
-                      <td><span className="violation-badge">{formatViolation(r.violationType)}</span></td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', maxWidth: 150 }}>
-                        {r.location?.address || 'GPS'}
+                      <td><span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span></td>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', maxWidth: 200 }}>
+                        {r.location?.address || 'SECURED GPS POINT'}
                       </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-sm)', fontWeight: 600 }}>
-                        {r.aiResults?.numberPlate || '—'}
+                      <td style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>
+                        {r.aiResults?.numberPlate || 'ENCRYPTED'}
                       </td>
-                      <td style={{ fontSize: 'var(--font-sm)', textTransform: 'capitalize' }}>
-                        {r.aiResults?.vehicleType || '—'}
+                      <td style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
+                        {r.aiResults?.vehicleType || 'UNKNOWN'}
                       </td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
                       </td>
                       <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
-                      <td>
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(r)} title="Review">✏️</button>
+                      <td style={{ textAlign: 'right' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(r)}>Inspect</button>
                       </td>
                     </tr>
                   ))}
@@ -304,218 +293,90 @@ export default function PoliceReports() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="pagination">
-          <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
-          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-            const pageNum = Math.max(1, page - 2) + i;
-            if (pageNum > totalPages) return null;
-            return (
-              <button key={pageNum} className={`pagination-btn ${page === pageNum ? 'active' : ''}`} onClick={() => setPage(pageNum)}>
-                {pageNum}
-              </button>
-            );
-          })}
-          <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next →</button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
+          <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-800)' }}>
+            Page {page} of {totalPages}
+          </div>
+          <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
         </div>
       )}
 
-      {/* Review Modal */}
+      {/* Review Dashboard Modal */}
       {editingReport && (
         <div className="modal-overlay" onClick={() => setEditingReport(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Review Report</h3>
+              <h3 className="modal-title">Evidence Inspection: {editingReport._id.slice(-8).toUpperCase()}</h3>
               <button className="modal-close" onClick={() => setEditingReport(null)}>✕</button>
             </div>
             <div className="modal-body">
-
-              {/* === EVIDENCE MEDIA GALLERY === */}
               {editingReport.media?.length > 0 ? (
                 <div style={{ marginBottom: 'var(--space-lg)' }}>
-                  <label className="form-label" style={{ marginBottom: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
-                    📎 Evidence ({editingReport.media.length} file{editingReport.media.length > 1 ? 's' : ''})
-                  </label>
-                  <div style={{
-                    borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-                    background: '#000', position: 'relative'
-                  }}>
+                  <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', background: '#000', position: 'relative', border: '1px solid var(--border-color)' }}>
                     {renderMediaItem(editingReport.media[mediaIndex])}
-
-                    {/* Navigation controls for multiple media */}
                     {editingReport.media.length > 1 && (
                       <>
-                        <button
-                          onClick={() => setMediaIndex(i => (i - 1 + editingReport.media.length) % editingReport.media.length)}
-                          style={{
-                            position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                            background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none',
-                            borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '16px', backdropFilter: 'blur(4px)', transition: 'background 0.2s'
-                          }}
-                          onMouseEnter={e => e.target.style.background = 'rgba(99,102,241,0.8)'}
-                          onMouseLeave={e => e.target.style.background = 'rgba(0,0,0,0.6)'}
-                        >◀</button>
-                        <button
-                          onClick={() => setMediaIndex(i => (i + 1) % editingReport.media.length)}
-                          style={{
-                            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                            background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none',
-                            borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '16px', backdropFilter: 'blur(4px)', transition: 'background 0.2s'
-                          }}
-                          onMouseEnter={e => e.target.style.background = 'rgba(99,102,241,0.8)'}
-                          onMouseLeave={e => e.target.style.background = 'rgba(0,0,0,0.6)'}
-                        >▶</button>
-
-                        {/* Dots indicator */}
-                        <div style={{
-                          position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
-                          display: 'flex', gap: 6
-                        }}>
-                          {editingReport.media.map((_, i) => (
-                            <div
-                              key={i}
-                              onClick={() => setMediaIndex(i)}
-                              style={{
-                                width: i === mediaIndex ? 20 : 8, height: 8,
-                                borderRadius: 4, cursor: 'pointer',
-                                background: i === mediaIndex ? 'var(--primary-400)' : 'rgba(255,255,255,0.5)',
-                                transition: 'all 0.3s ease'
-                              }}
-                            />
-                          ))}
-                        </div>
+                        <button onClick={() => setMediaIndex(i => (i - 1 + editingReport.media.length) % editingReport.media.length)} className="carousel-btn left">◀</button>
+                        <button onClick={() => setMediaIndex(i => (i + 1) % editingReport.media.length)} className="carousel-btn right">▶</button>
                       </>
                     )}
                   </div>
-
-                  {/* Media type label */}
-                  <div style={{
-                    marginTop: 'var(--space-xs)', display: 'flex', justifyContent: 'space-between',
-                    alignItems: 'center', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)'
-                  }}>
-                    <span>{editingReport.media[mediaIndex]?.type === 'video' ? '🎥 Video' : '🖼️ Image'}</span>
-                    {editingReport.media.length > 1 && <span>{mediaIndex + 1} / {editingReport.media.length}</span>}
+                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    <span>{editingReport.media[mediaIndex]?.type || 'MEDIA'} SOURCE</span>
+                    {editingReport.media.length > 1 && <span>FILE {mediaIndex + 1} OF {editingReport.media.length}</span>}
                   </div>
                 </div>
               ) : (
-                <div style={{
-                  marginBottom: 'var(--space-lg)', padding: 'var(--space-xl)',
-                  background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-lg)',
-                  textAlign: 'center', color: 'var(--text-tertiary)'
-                }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 'var(--space-xs)' }}>📷</div>
-                  <div style={{ fontSize: 'var(--font-sm)' }}>No evidence media attached</div>
+                <div style={{ marginBottom: 'var(--space-lg)', padding: 'var(--space-xl)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                  <div style={{ fontSize: 'var(--font-sm)' }}>No evidence media metadata found.</div>
                 </div>
               )}
 
-              {/* Report details */}
-              <div style={{
-                marginBottom: 'var(--space-md)', fontSize: 'var(--font-sm)',
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)'
-              }}>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Violation Type</div>
-                  <div style={{ fontWeight: 600 }}>{formatViolation(editingReport.violationType)}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>Classification</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{formatViolation(editingReport.violationType)}</div>
                 </div>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Location</div>
-                  <div style={{ fontWeight: 600 }}>{editingReport.location?.address || 'GPS'}</div>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>Incident Location</div>
+                  <div style={{ fontSize: '11px', fontWeight: 500 }}>{editingReport.location?.address || 'SECURED'}</div>
                 </div>
-                {editingReport.aiResults?.numberPlate && (
-                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>AI Number Plate</div>
-                    <div style={{ fontWeight: 600, fontFamily: 'monospace' }}>{editingReport.aiResults.numberPlate}</div>
-                  </div>
-                )}
-                {editingReport.aiResults?.vehicleType && (
-                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Vehicle Type</div>
-                    <div style={{ fontWeight: 600, textTransform: 'capitalize' }}>{editingReport.aiResults.vehicleType}</div>
-                  </div>
-                )}
-                {editingReport.aiResults?.helmetDetected !== null && editingReport.aiResults?.helmetDetected !== undefined && (
-                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>Helmet Detected</div>
-                    <div style={{ fontWeight: 600 }}>{editingReport.aiResults.helmetDetected ? '✅ Yes' : '❌ No'}</div>
-                  </div>
-                )}
-                {editingReport.aiResults?.confidence > 0 && (
-                  <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 2 }}>AI Confidence</div>
-                    <div style={{ fontWeight: 600 }}>{Math.round(editingReport.aiResults.confidence * 100)}%</div>
-                  </div>
-                )}
               </div>
 
-              {editingReport.description && (
-                <div style={{
-                  marginBottom: 'var(--space-md)', padding: 'var(--space-md)',
-                  background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)',
-                  fontSize: 'var(--font-sm)', lineHeight: 1.6
-                }}>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', marginBottom: 4 }}>Description</div>
-                  {editingReport.description}
-                </div>
-              )}
-
               <div className="form-group">
-                <label className="form-label">Decision</label>
+                <label className="form-label">Enforcement Decision</label>
                 <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approve ✅</option>
-                  <option value="rejected">Reject ❌</option>
+                  <option value="pending">Awaiting Review</option>
+                  <option value="approved">Verify Violation</option>
+                  <option value="rejected">Dismiss Case</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Officer Notes</label>
+                <label className="form-label">Audit Remarks</label>
                 <textarea
                   className="form-textarea"
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Add review notes..."
+                  placeholder="Record official verification notes or dismissal justifications..."
                   rows={3}
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditingReport(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleUpdateReport}>Submit Review</button>
+              <button className="btn btn-secondary" onClick={() => setEditingReport(null)}>Exit</button>
+              <button className="btn btn-primary" onClick={handleUpdateReport}>Commit Review</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Lightbox for full-size image viewing */}
       {lightboxMedia && (
-        <div
-          className="modal-overlay"
-          style={{ zIndex: 2000, background: 'rgba(0,0,0,0.9)', cursor: 'zoom-out' }}
-          onClick={() => setLightboxMedia(null)}
-        >
-          <img
-            src={lightboxMedia.url}
-            alt="Full evidence"
-            style={{
-              maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain',
-              borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-            }}
-          />
-          <button
-            onClick={() => setLightboxMedia(null)}
-            style={{
-              position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.15)',
-              border: 'none', color: '#fff', fontSize: '24px', width: 44, height: 44,
-              borderRadius: '50%', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)'
-            }}
-          >✕</button>
+        <div className="modal-overlay" style={{ zIndex: 2000, background: 'rgba(0,0,0,0.9)', cursor: 'zoom-out' }} onClick={() => setLightboxMedia(null)}>
+          <img src={lightboxMedia.url} alt="Examination" style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }} />
         </div>
       )}
     </div>
   );
 }
-

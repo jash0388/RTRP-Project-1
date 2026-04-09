@@ -35,6 +35,26 @@ export default function SubmitReport() {
     detectLocation();
   }, []);
 
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
+        {
+          headers: {
+            'User-Agent': 'RoadSuraksha-CitizenPortal-v1.0'
+          }
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setAddress(data.display_name || `Area near ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+      }
+    } catch (err) {
+      console.error('Reverse geocoding error:', err);
+      setAddress(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+    }
+  };
+
   const detectLocation = () => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
@@ -44,17 +64,21 @@ export default function SubmitReport() {
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLatitude(position.coords.latitude.toString());
-        setLongitude(position.coords.longitude.toString());
-        setAddress(`Lat: ${position.coords.latitude.toFixed(6)}, Lng: ${position.coords.longitude.toFixed(6)}`);
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        setLatitude(lat.toString());
+        setLongitude(lon.toString());
+        reverseGeocode(lat, lon);
         setGpsLoading(false);
       },
       (err) => {
         console.log('GPS error:', err.message);
-        // Set default location (Mumbai)
-        setLatitude('19.0760');
-        setLongitude('72.8777');
-        setAddress('Mumbai, Maharashtra (Default)');
+        // Default to Mumbai center if GPS fails
+        const defLat = 19.0760;
+        const defLon = 72.8777;
+        setLatitude(defLat.toString());
+        setLongitude(defLon.toString());
+        setAddress('Mumbai, Maharashtra (Default Location)');
         setGpsLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -65,12 +89,11 @@ export default function SubmitReport() {
     const selectedFiles = Array.from(e.target.files);
     setFiles(prev => [...prev, ...selectedFiles]);
 
-    // Generate previews
     selectedFiles.forEach(file => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-          setPreviews(prev => [...prev, { url: e.target.result, name: file.name, type: 'image' }]);
+        reader.onload = (ev) => {
+          setPreviews(prev => [...prev, { url: ev.target.result, name: file.name, type: 'image' }]);
         };
         reader.readAsDataURL(file);
       } else {
@@ -89,12 +112,12 @@ export default function SubmitReport() {
     setError('');
 
     if (!violationType) {
-      setError('Please select a violation type');
+      setError('Violation Category is required.');
       return;
     }
 
-    if (!latitude || !longitude) {
-      setError('Location is required. Please allow GPS access or enter manually.');
+    if (!address) {
+      setError('Location information is required.');
       return;
     }
 
@@ -113,15 +136,14 @@ export default function SubmitReport() {
       });
 
       const result = await reportsAPI.create(formData);
-
       if (result._id) {
         setSuccess(true);
         setTimeout(() => navigate('/report-history'), 2000);
       } else {
-        setError(result.message || 'Failed to submit report');
+        setError(result.message || 'Submission failed.');
       }
     } catch (err) {
-      setError('Failed to submit report. Please try again.');
+      setError('An error occurred during submission.');
     } finally {
       setSubmitting(false);
     }
@@ -131,48 +153,30 @@ export default function SubmitReport() {
     return (
       <div style={{ textAlign: 'center', padding: 'var(--space-3xl)' }}>
         <div style={{ fontSize: '4rem', marginBottom: 'var(--space-lg)' }}>✅</div>
-        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 700, marginBottom: 'var(--space-md)' }}>
-          Report Submitted Successfully!
+        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, marginBottom: 'var(--space-md)', color: 'var(--primary-800)' }}>
+          Submission Successful
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)' }}>
-          Your violation report has been received and is being processed by our AI system.
-        </p>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)' }}>
-          Redirecting to report history...
+          Your report has been logged in the system for official review.
         </p>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Report a Violation 📸</h1>
-        <p className="page-subtitle">Submit evidence of a traffic violation for review</p>
+    <div className="fade-in">
+      <div className="page-header" style={{ marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Violation Reporting Portal</h1>
+        <p className="page-subtitle">File an official report with photographic or video evidence.</p>
       </div>
 
-      {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: 'var(--radius-md)',
-          padding: 'var(--space-md)',
-          color: 'var(--danger-500)',
-          fontSize: 'var(--font-sm)',
-          marginBottom: 'var(--space-lg)'
-        }}>
-          {error}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-xl)' }}>
-          {/* Left Column */}
-          <div style={{ minWidth: 0 }}>
-            {/* Violation Type */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)', gap: 'var(--space-xl)' }}>
+          {/* Left Panel */}
+          <div>
             <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
               <div className="card-header">
-                <h3 className="card-title">Violation Type</h3>
+                <h3 className="card-title">Violation Category</h3>
               </div>
               <div className="card-body">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-sm)' }}>
@@ -185,11 +189,10 @@ export default function SubmitReport() {
                         gap: 'var(--space-sm)',
                         padding: 'var(--space-md)',
                         borderRadius: 'var(--radius-md)',
-                        border: `2px solid ${violationType === vt.value ? 'var(--primary-500)' : 'var(--border-color)'}`,
-                        background: violationType === vt.value ? 'var(--primary-500)' : 'transparent',
-                        color: violationType === vt.value ? '#fff' : 'inherit',
+                        border: `2px solid ${violationType === vt.value ? 'var(--primary-700)' : 'var(--border-color)'}`,
+                        background: violationType === vt.value ? 'var(--primary-50)' : 'var(--bg-secondary)',
                         cursor: 'pointer',
-                        transition: 'all var(--transition-fast)'
+                        transition: 'all 0.2s'
                       }}
                     >
                       <input
@@ -202,8 +205,9 @@ export default function SubmitReport() {
                       />
                       <span style={{ fontSize: '1.2rem' }}>{vt.label.split(' ')[0]}</span>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 'var(--font-sm)' }}>{vt.label.slice(vt.label.indexOf(' ') + 1)}</div>
-                        <div style={{ fontSize: 'var(--font-xs)', color: violationType === vt.value ? 'rgba(255, 255, 255, 0.8)' : 'var(--text-tertiary)' }}>{vt.desc}</div>
+                        <div style={{ fontWeight: 700, fontSize: 'var(--font-sm)', color: violationType === vt.value ? 'var(--primary-800)' : 'inherit' }}>
+                          {vt.label.slice(vt.label.indexOf(' ') + 1)}
+                        </div>
                       </div>
                     </label>
                   ))}
@@ -211,90 +215,38 @@ export default function SubmitReport() {
               </div>
             </div>
 
-            {/* Description */}
-            <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div className="card-header">
-                <h3 className="card-title">Description</h3>
-              </div>
+            <div className="card">
+              <div className="card-header"><h3 className="card-title">Additional Details</h3></div>
               <div className="card-body">
                 <textarea
                   className="form-textarea"
-                  placeholder="Describe the violation in detail (optional)..."
+                  placeholder="Provide any additional context regarding the observed violation..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  id="report-description"
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div style={{ minWidth: 0 }}>
-            {/* Media Upload */}
+          {/* Right Panel */}
+          <div>
             <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div className="card-header">
-                <h3 className="card-title">Evidence (Photo/Video)</h3>
-              </div>
+              <div className="card-header"><h3 className="card-title">Evidence Upload</h3></div>
               <div className="card-body">
-                <div
-                  className="file-upload"
-                  onClick={() => fileInput.current?.click()}
-                >
-                  <div className="file-upload-icon">📷</div>
-                  <div className="file-upload-text">
-                    Click to upload or drag and drop
-                  </div>
-                  <div className="file-upload-hint">
-                    JPEG, PNG, MP4, MOV up to 50MB (max 5 files)
-                  </div>
+                <div className="file-upload" onClick={() => fileInput.current?.click()} style={{ padding: 'var(--space-lg)' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>📁</div>
+                  <div style={{ fontWeight: 700 }}>Choose Files</div>
+                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Images or Videos (max 5)</div>
                 </div>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  id="report-file-input"
-                />
-
-                {/* Previews */}
+                <input ref={fileInput} type="file" accept="image/*,video/*" multiple onChange={handleFileChange} style={{ display: 'none' }} />
+                
                 {previews.length > 0 && (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                    gap: 'var(--space-sm)',
-                    marginTop: 'var(--space-md)'
-                  }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-xs)', marginTop: 'var(--space-md)' }}>
                     {previews.map((p, i) => (
-                      <div key={i} style={{
-                        position: 'relative',
-                        borderRadius: 'var(--radius-md)',
-                        overflow: 'hidden',
-                        border: '1px solid var(--border-color)',
-                        aspectRatio: '1'
-                      }}>
-                        {p.type === 'image' && p.url ? (
-                          <img src={p.url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            height: '100%', background: 'var(--bg-tertiary)', fontSize: '2rem'
-                          }}>🎥</div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeFile(i)}
-                          style={{
-                            position: 'absolute', top: 4, right: 4,
-                            background: 'rgba(0,0,0,0.6)', color: 'white',
-                            border: 'none', borderRadius: '50%',
-                            width: 24, height: 24, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.75rem'
-                          }}
-                        >✕</button>
+                      <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                        {p.type === 'image' ? <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-tertiary)' }}>🎥</div>}
+                        <button type="button" onClick={() => removeFile(i)} style={{ position: 'absolute', top: 2, right: 2, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: '10px' }}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -302,73 +254,35 @@ export default function SubmitReport() {
               </div>
             </div>
 
-            {/* Location */}
             <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
               <div className="card-header">
-                <h3 className="card-title">Location</h3>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={detectLocation}
-                  disabled={gpsLoading}
-                >
-                  {gpsLoading ? '📡 Detecting...' : '📍 Detect GPS'}
+                <h3 className="card-title">Incident Location</h3>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={detectLocation} disabled={gpsLoading}>
+                  {gpsLoading ? 'Detecting...' : '📍 Refresh GPS'}
                 </button>
               </div>
               <div className="card-body">
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label className="form-label">Latitude</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      placeholder="19.0760"
-                      required
-                      id="report-latitude"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Longitude</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      placeholder="72.8777"
-                      required
-                      id="report-longitude"
-                    />
-                  </div>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Address / Area</label>
-                  <input
-                    type="text"
-                    className="form-input"
+                {/* Lat/Long hidden from UI but used in form submission */}
+                <div className="form-group">
+                  <label className="form-label">Location Address</label>
+                  <textarea
+                    className="form-textarea"
+                    placeholder="Auto-detecting location..."
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter area or landmark"
-                    id="report-address"
+                    rows={3}
+                    readOnly={gpsLoading}
+                    style={{ background: 'var(--bg-tertiary)', fontWeight: 500 }}
                   />
+                  <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                    Address tracked via GPS subsystem. You can manually refine the text if needed.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%' }}
-              disabled={submitting}
-              id="submit-report-btn"
-            >
-              {submitting ? (
-                <><div className="spinner spinner-sm" style={{ borderTopColor: 'white' }}></div> Submitting & Analyzing...</>
-              ) : (
-                '🚀 Submit Violation Report'
-              )}
+            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={submitting}>
+              {submitting ? 'Processing Submission...' : 'Submit Official Report'}
             </button>
           </div>
         </div>

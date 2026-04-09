@@ -38,101 +38,94 @@ export default function AdminDashboard() {
 
   return (
     <div className="fade-in">
-      <div className="page-header" style={{ marginBottom: 'var(--space-2xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-xl)' }}>
-        <h1 className="page-title">Executive Control</h1>
-        <p className="page-subtitle">Real-time surveillance monitoring and system-wide violation metrics.</p>
+      {/* Official Admin Header */}
+      <div className="page-header" style={{ marginBottom: 'var(--space-2xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Administration Management Console</h1>
+        <p className="page-subtitle">Centralized oversight of all traffic violation categories and system analytical data.</p>
       </div>
 
-      {/* Stats Grid - High contrast and minimalist */}
+      {/* Aggregate Metrics Grid */}
       <div className="stats-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Total Reports</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats?.totalReports || 0}</div>
+        <div className="card" style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderLeft: '4px solid var(--primary-800)' }}>
+          <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Cumulative Submissions</div>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: 'var(--primary-800)' }}>{stats?.totalReports || 0}</div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fbbf24', marginBottom: 'var(--space-sm)' }}>Pending Verification</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)', color: '#fbbf24' }}>{stats?.pendingReports || 0}</div>
+        <div className="card" style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderLeft: '4px solid #fbbf24' }}>
+          <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Pending Verifications</div>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: '#854d0e' }}>{stats?.pendingReports || 0}</div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4ade80', marginBottom: 'var(--space-sm)' }}>Confirmed Violations</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)', color: '#4ade80' }}>{stats?.approvedReports || 0}</div>
+        <div className="card" style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderLeft: '4px solid #16a34a' }}>
+          <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Validated Incidents</div>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: '#166534' }}>{stats?.approvedReports || 0}</div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Current Month</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats?.monthlyCount || 0}</div>
+        <div className="card" style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderLeft: '4px solid var(--primary-600)' }}>
+          <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Monthly Throughput</div>
+          <div style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: 'var(--primary-800)' }}>{stats?.monthlyCount || 0}</div>
         </div>
       </div>
 
-      {/* High Priority Actions */}
+      {/* Primary Control Options */}
       <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-3xl)', flexWrap: 'wrap' }}>
-        <Link to="/admin/reports" className="btn btn-primary">Review Queue</Link>
-        <Link to="/admin/users" className="btn btn-secondary">User Management</Link>
-        <Link to="/analytics" className="btn btn-secondary">System Analytics</Link>
+        <Link to="/admin/reports" className="btn btn-primary">Incident Audit Registry</Link>
+        <Link to="/admin/users" className="btn btn-secondary">System User Database</Link>
+        <Link to="/analytics" className="btn btn-secondary">Detailed Analytics Hub</Link>
       </div>
 
-      {/* Violations Distribution */}
+      {/* Violation Taxonomy Overlay */}
       {stats?.violationsByType?.length > 0 && (
         <div style={{ marginBottom: 'var(--space-3xl)' }}>
-          <h3 className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>Surveillance Taxonomy</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
+          <h3 style={{ fontSize: 'var(--font-xl)', fontWeight: 800, marginBottom: 'var(--space-lg)', color: 'var(--primary-800)' }}>Violation Distribution Analysis</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--space-md)' }}>
             {stats.violationsByType.slice(0, 8).map(v => (
-              <div key={v._id} className="card" style={{
-                padding: 'var(--space-lg)',
-                background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid var(--border-color)',
-              }}>
-                <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-xs)' }}>
+              <div key={v._id} className="card" style={{ padding: 'var(--space-md)', background: 'var(--bg-secondary)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 'var(--space-xs)' }}>
                   {formatViolation(v._id)}
                 </div>
-                <div className="serif" style={{ fontSize: 'var(--font-2xl)' }}>{v.count}</div>
+                <div style={{ fontSize: 'var(--font-xl)', fontWeight: 800 }}>{v.count}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Audit Log (Recent Reports) */}
-      <div className="card" style={{ borderRadius: 'var(--radius-xl)' }}>
-        <div className="card-header" style={{ borderBottom: '1px solid var(--border-color)', padding: 'var(--space-lg) var(--space-xl)' }}>
-          <h3 className="serif" style={{ fontSize: 'var(--font-xl)' }}>Security Audit Log</h3>
-          <Link to="/admin/reports" className="btn btn-ghost btn-sm">Full Investigation Archive</Link>
+      {/* Recent Surveillance entries */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Recent Activity Registry</h3>
+          <Link to="/admin/reports" className="btn btn-ghost btn-sm">Full Investigation Archive →</Link>
         </div>
         <div className="card-body" style={{ padding: 0 }}>
           {recentReports.length === 0 ? (
             <div className="empty-state">
-              <p className="empty-state-text">No surveillance entries recorded.</p>
+              <p className="empty-state-text">No incident records found in surveillance data.</p>
             </div>
           ) : (
             <div className="table-container" style={{ border: 'none' }}>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Entry Entity</th>
+                    <th>Submitting Entity</th>
                     <th>Classification</th>
-                    <th>Origin</th>
+                    <th>Observed Location</th>
                     <th>Timestamp</th>
-                    <th>Decision</th>
-                    <th>Metadata</th>
+                    <th>Audit Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentReports.map(r => (
                     <tr key={r._id}>
-                      <td style={{ fontWeight: 600 }}>{r.user?.name || 'Authorized Subsystem'}</td>
+                      <td style={{ fontWeight: 700 }}>{r.user?.name || 'Authorized Subsystem'}</td>
                       <td>
-                        <span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span>
+                        <span style={{ fontSize: 'var(--font-xs)', fontWeight: 700, color: 'var(--primary-700)' }}>{formatViolation(r.violationType)}</span>
                       </td>
-                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
-                        {r.location?.address || 'GPS SECURED'}
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)' }}>
+                        {r.location?.address?.split(',').slice(0, 2).join(',') || 'GPS Tracking Active'}
                       </td>
-                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)' }}>
                         {formatDate(r.createdAt)}
                       </td>
                       <td>
                         <span className={`badge badge-${r.status}`}>{r.status}</span>
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
-                        {r.aiResults?.numberPlate || 'ENCRYPTED'}
                       </td>
                     </tr>
                   ))}

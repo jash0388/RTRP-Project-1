@@ -46,24 +46,23 @@ export default function AdminReports() {
     }
 
     if (showMap && mapInstanceRef.current) {
-      // Clear existing markers
       mapInstanceRef.current.eachLayer(layer => {
         if (layer instanceof L.Marker) {
           mapInstanceRef.current.removeLayer(layer);
         }
       });
 
-      // Add markers for all reports
       reports.forEach(r => {
         if (r.location?.coordinates) {
           const [lng, lat] = r.location.coordinates;
           L.marker([lat, lng])
             .addTo(mapInstanceRef.current)
             .bindPopup(`
-              <strong>${formatViolation(r.violationType)}</strong><br/>
-              ${r.location.address || ''}<br/>
-              Status: ${r.status}<br/>
-              ${r.aiResults?.numberPlate ? 'Plate: ' + r.aiResults.numberPlate : ''}
+              <div style="font-family: Inter, sans-serif; padding: 4px;">
+                <strong style="color: #1e40af">${formatViolation(r.violationType)}</strong><br/>
+                <span style="font-size: 11px; color: #64748b">${r.location.address || 'GPS Location'}</span><br/>
+                <span style="font-size: 11px; font-weight: 700">Status: ${r.status.toUpperCase()}</span>
+              </div>
             `);
         }
       });
@@ -92,7 +91,7 @@ export default function AdminReports() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this report?')) return;
+    if (!confirm('Proceed with permanent removal of this report from the database?')) return;
     try {
       await adminAPI.deleteReport(id);
       loadReports();
@@ -114,73 +113,73 @@ export default function AdminReports() {
   const formatViolation = (type) => type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Manage Reports 📑</h1>
-        <p className="page-subtitle">Review and manage all violation reports</p>
+    <div className="fade-in">
+      <div className="page-header" style={{ marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Violation Audit Registry</h1>
+        <p className="page-subtitle">Centralized review and management of citizen-submitted incident reports.</p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="filter-bar">
-        <select
-          className="form-select"
-          value={filterStatus}
-          onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-          id="filter-status"
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
+      {/* Control Panel */}
+      <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-md)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', gap: 'var(--space-sm)' }}>
+            <select
+              className="form-select"
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+              style={{ maxWidth: '200px' }}
+            >
+              <option value="">Filter: All Status</option>
+              <option value="pending">Awaiting Review</option>
+              <option value="approved">Verified</option>
+              <option value="rejected">Dismissed</option>
+            </select>
 
-        <select
-          className="form-select"
-          value={filterType}
-          onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          id="filter-type"
-        >
-          <option value="">All Types</option>
-          <option value="no_helmet">No Helmet</option>
-          <option value="signal_jump">Signal Jump</option>
-          <option value="wrong_parking">Wrong Parking</option>
-          <option value="overspeeding">Overspeeding</option>
-          <option value="wrong_side">Wrong Side</option>
-          <option value="no_seatbelt">No Seatbelt</option>
-          <option value="overloading">Overloading</option>
-          <option value="using_phone">Using Phone</option>
-          <option value="drunk_driving">Drunk Driving</option>
-          <option value="other">Other</option>
-        </select>
-
-        <button
-          className={`btn ${showMap ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setShowMap(!showMap)}
-        >
-          {showMap ? '📋 Table View' : '🗺️ Map View'}
-        </button>
-      </div>
-
-      {/* Map View */}
-      {showMap && (
-        <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
-          <div className="card-header">
-            <h3 className="card-title">Violation Locations</h3>
+            <select
+              className="form-select"
+              value={filterType}
+              onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+              style={{ maxWidth: '200px' }}
+            >
+              <option value="">Filter: All Categories</option>
+              <option value="no_helmet">No Helmet</option>
+              <option value="signal_jump">Signal Jump</option>
+              <option value="wrong_parking">Wrong Parking</option>
+              <option value="overspeeding">Overspeeding</option>
+              <option value="wrong_side">Wrong Side</option>
+              <option value="no_seatbelt">No Seatbelt</option>
+              <option value="overloading">Overloading</option>
+              <option value="using_phone">Using Phone</option>
+              <option value="drunk_driving">Drunk Driving</option>
+              <option value="other">Other Violation</option>
+            </select>
           </div>
-          <div className="map-container">
+
+          <button
+            className={`btn ${showMap ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setShowMap(!showMap)}
+            style={{ minWidth: '140px' }}
+          >
+            {showMap ? 'Show Table Listing' : 'Show Incident Map'}
+          </button>
+        </div>
+      </div>
+
+      {/* Map View Frame */}
+      {showMap && (
+        <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-sm)' }}>
+          <div className="map-container" style={{ borderRadius: 'var(--radius-lg)' }}>
             <div ref={mapRef} style={{ height: '100%', width: '100%' }}></div>
           </div>
         </div>
       )}
 
-      {/* Reports Table */}
+      {/* Data Presentation */}
       {loading ? (
         <div className="loader"><div className="spinner"></div></div>
       ) : reports.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <h3 className="empty-state-title">No reports found</h3>
-          <p className="empty-state-text">Try adjusting your filters</p>
+          <p className="empty-state-text">No matching records found in the audit registry.</p>
         </div>
       ) : (
         <div className="card">
@@ -189,41 +188,38 @@ export default function AdminReports() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Reporter</th>
-                    <th>Type</th>
-                    <th>Location</th>
-                    <th>AI Plate</th>
-                    <th>Vehicle</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>Reporter Entity</th>
+                    <th>Incident Category</th>
+                    <th>Observation Point</th>
+                    <th>System Metadata</th>
+                    <th>Registration Date</th>
+                    <th>Current Status</th>
+                    <th style={{ textAlign: 'right' }}>Audit Tools</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reports.map(r => (
                     <tr key={r._id}>
                       <td>
-                        <div style={{ fontWeight: 500 }}>{r.user?.name || 'Unknown'}</div>
-                        <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>{r.user?.email}</div>
+                        <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{r.user?.name || 'Anonymous'}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600 }}>ID: {r.user?._id?.slice(-6)}</div>
                       </td>
-                      <td><span className="violation-badge">{formatViolation(r.violationType)}</span></td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', maxWidth: '150px' }}>
-                        {r.location?.address || 'GPS Location'}
+                      <td><span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span></td>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', maxWidth: '200px' }}>
+                        {r.location?.address || 'GPS Subsystem Active'}
                       </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-sm)', fontWeight: 600 }}>
-                        {r.aiResults?.numberPlate || '—'}
+                      <td>
+                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.aiResults?.numberPlate || 'SECURED'}</div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.aiResults?.vehicleType || 'Unknown'}</div>
                       </td>
-                      <td style={{ fontSize: 'var(--font-sm)', textTransform: 'capitalize' }}>
-                        {r.aiResults?.vehicleType || '—'}
-                      </td>
-                      <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
                       </td>
                       <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => openEdit(r)} title="Edit">✏️</button>
-                          <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(r._id)} title="Delete">🗑️</button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          <button className="btn btn-secondary btn-sm" onClick={() => openEdit(r)}>Review</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(r._id)} style={{ color: '#ef4444' }}>Delete</button>
                         </div>
                       </td>
                     </tr>
@@ -235,70 +231,66 @@ export default function AdminReports() {
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="pagination">
-          <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
-          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-            const pageNum = Math.max(1, page - 2) + i;
-            if (pageNum > totalPages) return null;
-            return (
-              <button key={pageNum} className={`pagination-btn ${page === pageNum ? 'active' : ''}`} onClick={() => setPage(pageNum)}>
-                {pageNum}
-              </button>
-            );
-          })}
-          <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next →</button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
+          <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-800)' }}>
+            Page {page} of {totalPages}
+          </div>
+          <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Audit Detail Modal */}
       {editingReport && (
         <div className="modal-overlay" onClick={() => setEditingReport(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Review Report</h3>
+              <h3 className="modal-title">Surveillance Audit: {editingReport._id.slice(-8).toUpperCase()}</h3>
               <button className="modal-close" onClick={() => setEditingReport(null)}>✕</button>
             </div>
             <div className="modal-body">
               {editingReport.media?.length > 0 && (
-                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                  <img src={editingReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover' }} />
+                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                  <img src={editingReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000' }} />
                 </div>
               )}
 
-              <div style={{ marginBottom: 'var(--space-md)', fontSize: 'var(--font-sm)' }}>
-                <strong>Type:</strong> {formatViolation(editingReport.violationType)}<br />
-                <strong>Reporter:</strong> {editingReport.user?.name} ({editingReport.user?.email})<br />
-                <strong>Location:</strong> {editingReport.location?.address || 'GPS'}<br />
-                {editingReport.aiResults?.numberPlate && <><strong>AI Plate:</strong> {editingReport.aiResults.numberPlate}<br /></>}
-                {editingReport.aiResults?.vehicleType && <><strong>Vehicle:</strong> {editingReport.aiResults.vehicleType}<br /></>}
-                {editingReport.description && <><strong>Description:</strong> {editingReport.description}<br /></>}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+                <div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Classification</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{formatViolation(editingReport.violationType)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Location Entry</div>
+                  <div style={{ fontSize: '11px', fontWeight: 500 }}>{editingReport.location?.address || 'SECURED'}</div>
+                </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">Audit Decision</label>
                 <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="pending">Awaiting Review</option>
+                  <option value="approved">Verify Incident</option>
+                  <option value="rejected">Dismiss Incident</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Admin Notes</label>
+                <label className="form-label">Internal Audit Notes</label>
                 <textarea
                   className="form-textarea"
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Add review notes..."
+                  placeholder="Record compliance notes or dismissal justification..."
                   rows={3}
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditingReport(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleUpdateReport}>Save Changes</button>
+              <button className="btn btn-secondary" onClick={() => setEditingReport(null)}>Exit</button>
+              <button className="btn btn-primary" onClick={handleUpdateReport}>Commit Decision</button>
             </div>
           </div>
         </div>

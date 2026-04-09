@@ -51,72 +51,73 @@ export default function Dashboard() {
 
   return (
     <div className="fade-in">
-      {/* Page Header */}
-      <div className="page-header" style={{ marginBottom: 'var(--space-2xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-xl)' }}>
-        <h1 className="page-title">Citizen Performance</h1>
-        <p className="page-subtitle">Welcome back, {user?.name}. System status is operational for {today}.</p>
+      {/* Official Header */}
+      <div className="page-header" style={{ marginBottom: 'var(--space-2xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Citizen Oversight Dashboard</h1>
+        <p className="page-subtitle">Personal violation reporting history and system status for {today}.</p>
       </div>
 
-      {/* Stats Grid - Minimalist approach */}
+      {/* Numerical Metrics */}
       <div className="stats-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Impact Score</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats.total * 10}</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--accent)' }}>+15% from last month</div>
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary-700)' }}>
+          <div className="stat-info">
+            <div className="stat-label">Total Submissions</div>
+            <div className="stat-value" style={{ color: 'var(--primary-800)' }}>{stats.total}</div>
+          </div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Active Reports</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats.pending}</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Awaiting verification</div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #fbbf24' }}>
+          <div className="stat-info">
+            <div className="stat-label">Awaiting Verification</div>
+            <div className="stat-value" style={{ color: '#854d0e' }}>{stats.pending}</div>
+          </div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)', textAlign: 'center' }}>
-          <div style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 'var(--space-sm)' }}>Safe Road Points</div>
-          <div className="serif" style={{ fontSize: 'var(--font-4xl)' }}>{stats.approved * 50}</div>
-          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--accent)' }}>Top 5% contributor</div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #22c55e' }}>
+          <div className="stat-info">
+            <div className="stat-label">Verified Violations</div>
+            <div className="stat-value" style={{ color: '#166534' }}>{stats.approved}</div>
+          </div>
         </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 'var(--space-2xl)' }}>
-        <div className="left-panel">
-          {/* Recent Reports Table */}
-          <div className="card" style={{ borderRadius: 'var(--radius-xl)' }}>
-            <div className="card-header" style={{ borderBottom: '1px solid var(--border-color)', padding: 'var(--space-lg) var(--space-xl)' }}>
-              <h3 className="serif" style={{ fontSize: 'var(--font-xl)' }}>Activity Stream</h3>
-              <Link to="/report-history" className="btn btn-ghost btn-sm">Archive</Link>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 'var(--space-xl)' }}>
+        {/* Activity Log */}
+        <div>
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Recent Activity Stream</h3>
+              <Link to="/report-history" className="btn btn-ghost btn-sm">Full History</Link>
             </div>
             <div className="card-body" style={{ padding: 0 }}>
               {reports.length === 0 ? (
                 <div className="empty-state">
-                  <p className="empty-state-text">No recent activity detected.</p>
-                  <Link to="/submit-report" className="btn btn-primary">File First Report</Link>
+                  <p className="empty-state-text">No reporting activity found in current records.</p>
+                  <Link to="/submit-report" className="btn btn-primary">File a New Report</Link>
                 </div>
               ) : (
                 <div className="table-container" style={{ border: 'none' }}>
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>Event</th>
-                        <th>Location</th>
+                        <th>Violation Category</th>
+                        <th>Incident Location</th>
                         <th>Status</th>
-                        <th>Identification</th>
+                        <th>Timestamp</th>
                       </tr>
                     </thead>
                     <tbody>
                       {reports.map(report => (
                         <tr key={report._id}>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{formatViolationType(report.violationType)}</div>
-                            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>{formatDate(report.createdAt)}</div>
+                          <td style={{ fontWeight: 700, color: 'var(--primary-800)' }}>
+                            {formatViolationType(report.violationType)}
                           </td>
-                          <td style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-sm)' }}>
-                            {report.location?.address?.split(',')[0] || 'Unknown Origin'}
+                          <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)' }}>
+                            {report.location?.address || 'GPS Tracking Active'}
                           </td>
                           <td>
                             <span className={`badge badge-${report.status}`}>{report.status}</span>
                           </td>
-                          <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
-                            {report.aiResults?.numberPlate || 'SECURED'}
+                          <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
+                            {formatDate(report.createdAt)}
                           </td>
                         </tr>
                       ))}
@@ -128,28 +129,33 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="right-panel">
-          {/* Quick Action Sidebars */}
-          <div className="card" style={{ padding: 'var(--space-xl)', marginBottom: 'var(--space-xl)', background: 'var(--bg-secondary)' }}>
-            <h4 className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-lg)' }}>Quick Initiation</h4>
-            <Link to="/submit-report" className="btn btn-primary btn-lg" style={{ width: '100%', marginBottom: 'var(--space-sm)' }}>
-              Report Violation
-            </Link>
-            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              Upload evidence directly to the AI core for real-time verification.
-            </p>
+        {/* Sidebar Actions */}
+        <div>
+          <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
+            <div className="card-body">
+              <h4 style={{ fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-md)' }}>Quick Actions</h4>
+              <Link to="/submit-report" className="btn btn-primary" style={{ width: '100%', marginBottom: 'var(--space-sm)' }}>
+                New Violation Entry
+              </Link>
+              <Link to="/profile" className="btn btn-secondary" style={{ width: '100%' }}>
+                Manage Account
+              </Link>
+            </div>
           </div>
 
-          <div className="card" style={{ padding: 'var(--space-xl)', background: 'var(--bg-secondary)' }}>
-            <h4 className="serif" style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-md)' }}>Safety Compliance</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              <div style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 'var(--space-md)' }}>
-                <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>Helmet Protocol</div>
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Reduces fatality risk by 69% in metropolitan zones.</div>
-              </div>
-              <div style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 'var(--space-md)' }}>
-                <div style={{ fontSize: 'var(--font-xs)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>Active Attendance</div>
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Road Suraksha is powered by your real-time vigilance.</div>
+          <div className="card">
+            <div className="card-body">
+              <h4 style={{ fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-xs)' }}>Safety Compliance</h4>
+              <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--space-md)' }}>Help maintain traffic order.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                <div style={{ background: 'var(--bg-tertiary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--primary-600)' }}>
+                  <div style={{ fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>Helmet Protocol</div>
+                  <div style={{ fontSize: '11px', opacity: 0.8 }}>Required for all riders.</div>
+                </div>
+                <div style={{ background: 'var(--bg-tertiary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--primary-600)' }}>
+                  <div style={{ fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>Signal Discipline</div>
+                  <div style={{ fontSize: '11px', opacity: 0.8 }}>Follow intersection signals.</div>
+                </div>
               </div>
             </div>
           </div>

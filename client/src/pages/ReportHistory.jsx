@@ -36,157 +36,146 @@ export default function ReportHistory() {
   }
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Report History 📋</h1>
-        <p className="page-subtitle">Track the status of your submitted violation reports</p>
+    <div className="fade-in">
+      <div className="page-header" style={{ marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
+        <h1 className="page-title">Personal Submission Archives</h1>
+        <p className="page-subtitle">A comprehensive record of your traffic violation reports and their official audit status.</p>
       </div>
 
       {reports.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <h3 className="empty-state-title">No reports yet</h3>
-          <p className="empty-state-text">You haven't submitted any violation reports yet.</p>
+          <p className="empty-state-text">No records found in your submission history.</p>
         </div>
       ) : (
         <>
-          <div className="reports-grid">
+          <div className="reports-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-md)' }}>
             {reports.map(report => (
-              <div className="report-card" key={report._id} onClick={() => setSelectedReport(report)}>
-                <div className="report-card-media">
+              <div className="card" key={report._id} onClick={() => setSelectedReport(report)} style={{ cursor: 'pointer', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', height: '180px', background: 'var(--bg-tertiary)' }}>
                   {report.media && report.media.length > 0 ? (
-                    <img src={report.media[0].url} alt="Evidence" />
+                    <img src={report.media[0].url} alt="Evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div className="no-media">📷</div>
+                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>🖼️</div>
                   )}
-                  <div className="report-card-status">
+                  <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
                     <span className={`badge badge-${report.status}`}>{report.status}</span>
                   </div>
                 </div>
-                <div className="report-card-body">
-                  <div className="report-card-type">
-                    <span className="violation-badge">{formatViolation(report.violationType)}</span>
+                <div className="card-body">
+                  <div style={{ marginBottom: 'var(--space-sm)' }}>
+                    <span style={{ fontSize: 'var(--font-xs)', fontWeight: 700, color: 'var(--primary-700)' }}>{formatViolation(report.violationType)}</span>
                   </div>
-                  <p className="report-card-desc">
-                    {report.description || 'No description provided'}
+                  <p style={{ 
+                    fontSize: 'var(--font-sm)', 
+                    color: 'var(--text-secondary)', 
+                    marginBottom: 'var(--space-md)',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    lineHeight: 1.4,
+                    minHeight: '2.8em'
+                  }}>
+                    {report.description || 'No descriptive context provided.'}
                   </p>
-                  <div className="report-card-meta">
-                    <span>📍 {report.location?.address || 'GPS Location'}</span>
-                    <span>{formatDate(report.createdAt)}</span>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    fontSize: '11px', 
+                    color: 'var(--text-tertiary)',
+                    borderTop: '1px solid var(--border-color)',
+                    paddingTop: 'var(--space-sm)'
+                  }}>
+                    <span style={{ fontWeight: 600 }}>📍 {report.location?.address?.split(',')[0] || 'GPS Point'}</span>
+                    <span>{formatDate(report.createdAt).split(',')[0]}</span>
                   </div>
-                  {report.aiResults?.numberPlate && (
-                    <div style={{
-                      marginTop: 'var(--space-sm)',
-                      padding: 'var(--space-xs) var(--space-sm)',
-                      background: 'var(--bg-tertiary)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontFamily: 'monospace',
-                      fontSize: 'var(--font-xs)',
-                      display: 'inline-block'
-                    }}>
-                      🔢 {report.aiResults.numberPlate}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Pagination */}
+          {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="pagination">
-              <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                ← Prev
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  className={`pagination-btn ${page === i + 1 ? 'active' : ''}`}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                Next →
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
+              <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+              <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700 }}>
+                Page {page} of {totalPages}
+              </div>
+              <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
             </div>
           )}
         </>
       )}
 
-      {/* Report Detail Modal */}
+      {/* Review Detail Modal */}
       {selectedReport && (
         <div className="modal-overlay" onClick={() => setSelectedReport(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Report Details</h3>
+              <h3 className="modal-title">Verification Transcript</h3>
               <button className="modal-close" onClick={() => setSelectedReport(null)}>✕</button>
             </div>
             <div className="modal-body">
               {selectedReport.media?.length > 0 && (
-                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                  <img src={selectedReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }} />
+                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                  <img src={selectedReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000' }} />
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                 <div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 2 }}>Type</div>
-                  <span className="violation-badge">{formatViolation(selectedReport.violationType)}</span>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: 2 }}>Incident Category</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{formatViolation(selectedReport.violationType)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 2 }}>Status</div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: 2 }}>Current Outcome</div>
                   <span className={`badge badge-${selectedReport.status}`}>{selectedReport.status}</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 2 }}>Date</div>
-                  <div style={{ fontSize: 'var(--font-sm)' }}>{formatDate(selectedReport.createdAt)}</div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: 2 }}>Registration Date</div>
+                  <div style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>{formatDate(selectedReport.createdAt)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 2 }}>Location</div>
-                  <div style={{ fontSize: 'var(--font-sm)' }}>{selectedReport.location?.address || 'GPS'}</div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: 2 }}>Reported Origin</div>
+                  <div style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>{selectedReport.location?.address || 'SECURED GPS'}</div>
                 </div>
               </div>
 
               {selectedReport.description && (
-                <div style={{ marginTop: 'var(--space-lg)' }}>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>Description</div>
-                  <p style={{ fontSize: 'var(--font-sm)' }}>{selectedReport.description}</p>
+                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: 4 }}>Submitter Statement</div>
+                  <p style={{ fontSize: 'var(--font-sm)', lineHeight: 1.5 }}>{selectedReport.description}</p>
                 </div>
               )}
 
-              {/* AI Results */}
+              {/* Automated Audit (AI Results) */}
               {selectedReport.aiResults && (
                 <div style={{
                   marginTop: 'var(--space-lg)',
                   padding: 'var(--space-md)',
                   background: 'var(--bg-tertiary)',
-                  borderRadius: 'var(--radius-lg)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)'
                 }}>
-                  <div style={{ fontSize: 'var(--font-sm)', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>🤖 AI Analysis</div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary-800)', marginBottom: 'var(--space-md)' }}>Automated System Diagnostics</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)', fontSize: 'var(--font-sm)' }}>
-                    <div>Helmet: {selectedReport.aiResults.helmetDetected === null ? '—' : selectedReport.aiResults.helmetDetected ? '✅ Yes' : '❌ No'}</div>
-                    <div>Vehicle: {selectedReport.aiResults.vehicleType || '—'}</div>
-                    <div>Plate: {selectedReport.aiResults.numberPlate || '—'}</div>
-                    <div>Confidence: {selectedReport.aiResults.confidence ? `${(selectedReport.aiResults.confidence * 100).toFixed(0)}%` : '—'}</div>
+                    <div>Helmet Detection: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.helmetDetected === null ? 'INCONCLUSIVE' : selectedReport.aiResults.helmetDetected ? 'IDENTIFIED' : 'NOT DETECTED'}</span></div>
+                    <div>Vehicle Category: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.vehicleType || 'PROCESSING'}</span></div>
+                    <div>Registration Plate: <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{selectedReport.aiResults.numberPlate || 'ENCRYPTED'}</span></div>
+                    <div>Verification Confidence: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.confidence ? `${(selectedReport.aiResults.confidence * 100).toFixed(0)}%` : 'PENDING'}</span></div>
                   </div>
-                  {selectedReport.aiResults.autoTags?.length > 0 && (
-                    <div style={{ marginTop: 'var(--space-sm)' }}>
-                      Tags: {selectedReport.aiResults.autoTags.map(t => (
-                        <span className="violation-badge" key={t} style={{ marginRight: 4 }}>{formatViolation(t)}</span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
 
               {selectedReport.adminNotes && (
-                <div style={{ marginTop: 'var(--space-lg)' }}>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>Admin Notes</div>
-                  <p style={{ fontSize: 'var(--font-sm)', fontStyle: 'italic' }}>{selectedReport.adminNotes}</p>
+                <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', borderLeft: '3px solid var(--primary-700)', background: 'var(--primary-50)' }}>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--primary-800)', fontWeight: 700, marginBottom: 4 }}>Official Auditor Remarks</div>
+                  <p style={{ fontSize: 'var(--font-sm)', fontWeight: 500, color: 'var(--primary-900)' }}>{selectedReport.adminNotes}</p>
                 </div>
               )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setSelectedReport(null)}>Close Transcript</button>
             </div>
           </div>
         </div>
