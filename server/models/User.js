@@ -27,7 +27,21 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: false,
     validate: {
-      len: { args: [6, 255], msg: 'Password must be at least 6 characters' }
+      len: { args: [8, 255], msg: 'Password must be at least 8 characters' },
+      isStrongPassword(value) {
+        if (!/[A-Z]/.test(value)) {
+          throw new Error('Password must contain at least one uppercase letter');
+        }
+        if (!/[a-z]/.test(value)) {
+          throw new Error('Password must contain at least one lowercase letter');
+        }
+        if (!/[0-9]/.test(value)) {
+          throw new Error('Password must contain at least one digit');
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
+          throw new Error('Password must contain at least one special character (!@#$%^&* etc.)');
+        }
+      }
     }
   },
   role: {

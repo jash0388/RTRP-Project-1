@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
+const { useState, useEffect, useRef } = React;
 import { adminAPI } from '../services/api';
 import L from 'leaflet';
 
@@ -16,10 +17,6 @@ export default function AdminReports() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
-  useEffect(() => {
-    loadReports();
-  }, [page, filterStatus, filterType]);
-
   const loadReports = async () => {
     setLoading(true);
     try {
@@ -36,6 +33,10 @@ export default function AdminReports() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadReports();
+  }, [page, filterStatus, filterType]);
 
   useEffect(() => {
     if (showMap && mapRef.current && !mapInstanceRef.current) {
@@ -110,7 +111,7 @@ export default function AdminReports() {
     day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 
-  const formatViolation = (type) => type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const formatViolation = (type) => type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || '';
 
   return (
     <div className="fade-in">
@@ -201,7 +202,7 @@ export default function AdminReports() {
                   {reports.map(r => (
                     <tr key={r._id}>
                       <td>
-                        <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{r.user?.name || 'Anonymous'}</div>
+                        <div style={{ fontWeight: 800, color: 'var(--primary-600)' }}>{r.user?.name || 'Anonymous'}</div>
                         <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600 }}>ID: {r.user?._id?.slice(-6)}</div>
                       </td>
                       <td><span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span></td>
@@ -235,7 +236,7 @@ export default function AdminReports() {
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
           <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-800)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-600)' }}>
             Page {page} of {totalPages}
           </div>
           <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
@@ -247,7 +248,7 @@ export default function AdminReports() {
         <div className="modal-overlay" onClick={() => setEditingReport(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Surveillance Audit: {editingReport._id.slice(-8).toUpperCase()}</h3>
+              <h3 className="modal-title">Surveillance Audit: {editingReport._id.toString().slice(-8).toUpperCase()}</h3>
               <button className="modal-close" onClick={() => setEditingReport(null)}>✕</button>
             </div>
             <div className="modal-body">
@@ -260,7 +261,7 @@ export default function AdminReports() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
                 <div>
                   <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Classification</div>
-                  <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{formatViolation(editingReport.violationType)}</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary-600)' }}>{formatViolation(editingReport.violationType)}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Location Entry</div>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+const { useState, useEffect } = React;
 import { adminAPI } from '../services/api';
 
 export default function AdminUsers() {

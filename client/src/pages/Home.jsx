@@ -20,7 +20,8 @@ export default function Home() {
     {
       title: 'Safety Guidelines',
       desc: 'Review official road safety protocols and guidelines for traffic compliance.',
-      link: '#',
+      link: 'https://morth.nic.in/road-safety',
+      external: true,
       label: 'View Guidelines'
     }
   ];
@@ -55,17 +56,40 @@ export default function Home() {
             An official initiative to enhance road safety through community participation and AI-driven monitoring. 
             Report violations securely and contribute to safer roads for everyone.
           </p>
-          <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>
             {isAuthenticated ? (
-              <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ color: 'var(--primary-800)', fontWeight: 700 }}>
+              <Link to="/dashboard" className="btn btn-lg" style={{
+                background: '#ffffff',
+                color: '#1e3a8a',
+                fontWeight: 700,
+                border: '2px solid #ffffff',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                letterSpacing: '0.02em'
+              }}>
                 Go to Dashboard
               </Link>
             ) : (
               <>
-                <Link to="/register" className="btn btn-secondary btn-lg" style={{ color: 'var(--primary-800)', fontWeight: 700 }}>
+                <Link to="/register" className="btn btn-lg" style={{
+                  background: '#ffffff',
+                  color: '#1e3a8a',
+                  fontWeight: 700,
+                  border: '2px solid #ffffff',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                  letterSpacing: '0.02em',
+                  fontSize: '1rem'
+                }}>
                   Citizen Registration
                 </Link>
-                <Link to="/login" className="btn btn-ghost btn-lg" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
+                <Link to="/login" className="btn btn-lg" style={{
+                  background: 'transparent',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  border: '2px solid rgba(255,255,255,0.5)',
+                  backdropFilter: 'blur(4px)',
+                  letterSpacing: '0.02em',
+                  fontSize: '1rem'
+                }}>
                   Portal Login
                 </Link>
               </>
@@ -75,31 +99,66 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
-        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--primary-800)', marginBottom: 'var(--space-sm)' }}>
+      <div style={{
+        maxWidth: '1120px',
+        margin: '0 auto',
+        marginBottom: 'var(--space-2xl)',
+        textAlign: 'center'
+      }}>
+        <h2 style={{
+          fontSize: 'var(--font-2xl)',
+          fontWeight: 800,
+          color: 'var(--primary-800)',
+          marginBottom: 'var(--space-sm)'
+        }}>
           Online Citizen Services
         </h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-xl)' }}>
+        <p style={{
+          color: 'var(--text-secondary)',
+          marginBottom: 'var(--space-xl)',
+          maxWidth: '600px',
+          margin: '0 auto',
+          marginBottom: 'var(--space-xl)'
+        }}>
           Access official traffic violation management services directly through the portal.
         </p>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          gap: 'var(--space-xl)' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 'var(--space-lg)'
         }}>
           {services.map((service, i) => (
-            <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div key={i} className="card" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              textAlign: 'left',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+            }}>
               <div className="card-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <h3 className="card-title" style={{ color: 'var(--primary-800)' }}>{service.title}</h3>
+                <h3 className="card-title" style={{ color: 'var(--primary-800)', fontSize: 'var(--font-md)' }}>
+                  {service.title}
+                </h3>
               </div>
-              <div className="card-body" style={{ flex: 1 }}>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', lineHeight: 1.5 }}>
+              <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <p style={{
+                  color: 'var(--text-secondary)',
+                  marginBottom: 'var(--space-lg)',
+                  lineHeight: 1.6,
+                  fontSize: 'var(--font-sm)',
+                  flex: 1
+                }}>
                   {service.desc}
                 </p>
-                <Link to={service.link} className="btn btn-primary btn-sm" style={{ width: '100%' }}>
-                  {service.label}
-                </Link>
+                {service.external ? (
+                  <a href={service.link} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+                    {service.label}
+                  </a>
+                ) : (
+                  <Link to={service.link} className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+                    {service.label}
+                  </Link>
+                )}
               </div>
             </div>
           ))}

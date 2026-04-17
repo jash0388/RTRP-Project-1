@@ -1,8 +1,9 @@
 import React from 'react';
 const { useState, useEffect, useRef } = React;
+import { adminAPI } from '../services/api';
 import L from 'leaflet';
 
-export default function PoliceReports() {
+export default function AdminAuditRegistry() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -13,28 +14,17 @@ export default function PoliceReports() {
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [showMap, setShowMap] = useState(false);
-  const [mediaIndex, setMediaIndex] = useState(0);
-  const [lightboxMedia, setLightboxMedia] = useState(null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-
-  const token = localStorage.getItem('sphn_token');
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
 
   const loadReports = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page, limit: 15 });
-      if (filterStatus) params.append('status', filterStatus);
-      if (filterType) params.append('violationType', filterType);
+      const params = { page, limit: 15 };
+      if (filterStatus) params.status = filterStatus;
+      if (filterType) params.violationType = filterType;
 
-      const res = await fetch(`/api/police/reports?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const data = await adminAPI.getReports(params);
       setReports(data.reports || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -48,18 +38,19 @@ export default function PoliceReports() {
     loadReports();
   }, [page, filterStatus, filterType]);
 
-  // Map logic
   useEffect(() => {
     if (showMap && mapRef.current && !mapInstanceRef.current) {
       mapInstanceRef.current = L.map(mapRef.current).setView([20.5937, 78.9629], 5);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+        attribution: '© OpenStreetMap contributors'
       }).addTo(mapInstanceRef.current);
     }
 
     if (showMap && mapInstanceRef.current) {
       mapInstanceRef.current.eachLayer(layer => {
-        if (layer instanceof L.Marker) mapInstanceRef.current.removeLayer(layer);
+        if (layer instanceof L.Marker) {
+          mapInstanceRef.current.removeLayer(layer);
+        }
       });
 
       reports.forEach(r => {
@@ -89,10 +80,9 @@ export default function PoliceReports() {
   const handleUpdateReport = async () => {
     if (!editingReport) return;
     try {
-      await fetch(`/api/police/reports/${editingReport._id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ status: editStatus, adminNotes: editNotes })
+      await adminAPI.updateReport(editingReport._id, {
+        status: editStatus,
+        adminNotes: editNotes
       });
       setEditingReport(null);
       loadReports();
@@ -101,85 +91,36 @@ export default function PoliceReports() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm('Proceed with permanent removal of this report from the database?')) return;
+    try {
+      await adminAPI.deleteReport(id);
+      loadReports();
+    } catch (err) {
+      console.error('Failed to delete report:', err);
+    }
+  };
+
   const openEdit = (report) => {
     setEditingReport(report);
     setEditStatus(report.status);
     setEditNotes(report.adminNotes || '');
-    setMediaIndex(0);
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 
-  const formatViolation = (type) => type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-  // Render a single media item (image or video)
-  const renderMediaItem = (item, style = {}) => {
-    if (!item) return null;
-    if (item.type === 'video') {
-      return (
-        <video
-          src={item.url}
-          controls
-          style={{ width: '100%', maxHeight: '350px', objectFit: 'contain', borderRadius: 'var(--radius-md)', background: '#000', ...style }}
-        />
-      );
-    }
-    return (
-      <img
-        src={item.url}
-        alt="Evidence"
-        style={{ width: '100%', maxHeight: '350px', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer', ...style }}
-        onClick={() => setLightboxMedia(item)}
-      />
-    );
-  };
-
-  // Thumbnail for table rows
-  const renderThumbnail = (media) => {
-    if (!media || media.length === 0) {
-      return (
-        <div style={{
-          width: 48, height: 48, borderRadius: 'var(--radius-md)',
-          background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontSize: '18px', color: 'var(--text-tertiary)'
-        }}>
-          📷
-        </div>
-      );
-    }
-    const first = media[0];
-    if (first.type === 'video') {
-      return (
-        <div style={{
-          width: 48, height: 48, borderRadius: 'var(--radius-md)',
-          background: '#000', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', position: 'relative', overflow: 'hidden'
-        }}>
-          <video src={first.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '16px'
-          }}>▶</div>
-        </div>
-      );
-    }
-    return (
-      <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative' }}>
-        <img src={first.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      </div>
-    );
-  };
+  const formatViolation = (type) => type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || '';
 
   return (
     <div className="fade-in">
       <div className="page-header" style={{ marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-md)' }}>
-        <h1 className="page-title">Enforcement Review Feed</h1>
-        <p className="page-subtitle">Inspect submitted evidence and perform official verification of traffic violations.</p>
+        <h1 className="page-title">Violation Audit Registry</h1>
+        <p className="page-subtitle">Centralized review and management of citizen-submitted incident reports.</p>
       </div>
 
-      {/* Control Bar */}
+      {/* Control Panel */}
       <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-md)' }}>
         <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ flex: 1, display: 'flex', gap: 'var(--space-sm)' }}>
@@ -189,7 +130,7 @@ export default function PoliceReports() {
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
               style={{ maxWidth: '200px' }}
             >
-              <option value="">Filter: All Case Status</option>
+              <option value="">Filter: All Status</option>
               <option value="pending">Awaiting Review</option>
               <option value="approved">Verified</option>
               <option value="rejected">Dismissed</option>
@@ -220,12 +161,12 @@ export default function PoliceReports() {
             onClick={() => setShowMap(!showMap)}
             style={{ minWidth: '140px' }}
           >
-            {showMap ? 'Show Table View' : 'Show Location Map'}
+            {showMap ? 'Show Table Listing' : 'Show Incident Map'}
           </button>
         </div>
       </div>
 
-      {/* Map Overlay */}
+      {/* Map View Frame */}
       {showMap && (
         <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-sm)' }}>
           <div className="map-container" style={{ borderRadius: 'var(--radius-lg)' }}>
@@ -234,12 +175,12 @@ export default function PoliceReports() {
         </div>
       )}
 
-      {/* Investigation Records */}
+      {/* Data Presentation */}
       {loading ? (
         <div className="loader"><div className="spinner"></div></div>
       ) : reports.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-state-text">No pending investigation records found in the current registry.</p>
+          <p className="empty-state-text">No matching records found in the audit registry.</p>
         </div>
       ) : (
         <div className="card">
@@ -248,40 +189,39 @@ export default function PoliceReports() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Evidence</th>
-                    <th>Classification</th>
-                    <th>Observation Area</th>
-                    <th>Identification</th>
-                    <th>Vehicle</th>
-                    <th>Date Registered</th>
-                    <th>Outcome</th>
-                    <th style={{ textAlign: 'right' }}>Audit</th>
+                    <th>Reporter Entity</th>
+                    <th>Incident Category</th>
+                    <th>Observation Point</th>
+                    <th>System Metadata</th>
+                    <th>Registration Date</th>
+                    <th>Current Status</th>
+                    <th style={{ textAlign: 'right' }}>Audit Tools</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reports.map(r => (
                     <tr key={r._id}>
                       <td>
-                        <div style={{ cursor: 'pointer' }} onClick={() => openEdit(r)}>
-                          {renderThumbnail(r.media)}
-                        </div>
+                        <div style={{ fontWeight: 800, color: 'var(--primary-600)' }}>{r.user?.name || 'Anonymous'}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600 }}>ID: {r.user?._id?.slice(-6)}</div>
                       </td>
                       <td><span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span></td>
-                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', maxWidth: 200 }}>
-                        {r.location?.address || 'SECURED GPS POINT'}
+                      <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', maxWidth: '200px' }}>
+                        {r.location?.address || 'GPS Subsystem Active'}
                       </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>
-                        {r.aiResults?.numberPlate || 'ENCRYPTED'}
-                      </td>
-                      <td style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-                        {r.aiResults?.vehicleType || 'UNKNOWN'}
+                      <td>
+                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.aiResults?.numberPlate || 'SECURED'}</div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.aiResults?.vehicleType || 'Unknown'}</div>
                       </td>
                       <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
                       </td>
                       <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
                       <td style={{ textAlign: 'right' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(r)}>Inspect</button>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          <button className="btn btn-secondary btn-sm" onClick={() => openEdit(r)}>Review</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(r._id)} style={{ color: '#ef4444' }}>Delete</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -292,90 +232,68 @@ export default function PoliceReports() {
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
           <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-800)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--space-md)', fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--primary-600)' }}>
             Page {page} of {totalPages}
           </div>
           <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
         </div>
       )}
 
-      {/* Review Dashboard Modal */}
+      {/* Audit Detail Modal */}
       {editingReport && (
         <div className="modal-overlay" onClick={() => setEditingReport(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Evidence Inspection: {editingReport._id.slice(-8).toUpperCase()}</h3>
+              <h3 className="modal-title">Surveillance Audit: {editingReport._id.toString().slice(-8).toUpperCase()}</h3>
               <button className="modal-close" onClick={() => setEditingReport(null)}>✕</button>
             </div>
             <div className="modal-body">
-              {editingReport.media?.length > 0 ? (
-                <div style={{ marginBottom: 'var(--space-lg)' }}>
-                  <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', background: '#000', position: 'relative', border: '1px solid var(--border-color)' }}>
-                    {renderMediaItem(editingReport.media[mediaIndex])}
-                    {editingReport.media.length > 1 && (
-                      <>
-                        <button onClick={() => setMediaIndex(i => (i - 1 + editingReport.media.length) % editingReport.media.length)} className="carousel-btn left">◀</button>
-                        <button onClick={() => setMediaIndex(i => (i + 1) % editingReport.media.length)} className="carousel-btn right">▶</button>
-                      </>
-                    )}
-                  </div>
-                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    <span>{editingReport.media[mediaIndex]?.type || 'MEDIA'} SOURCE</span>
-                    {editingReport.media.length > 1 && <span>FILE {mediaIndex + 1} OF {editingReport.media.length}</span>}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ marginBottom: 'var(--space-lg)', padding: 'var(--space-xl)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  <div style={{ fontSize: 'var(--font-sm)' }}>No evidence media metadata found.</div>
+              {editingReport.media?.length > 0 && (
+                <div style={{ marginBottom: 'var(--space-lg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                  <img src={editingReport.media[0].url} alt="Evidence" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000' }} />
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>Classification</div>
-                  <div style={{ fontWeight: 800, color: 'var(--primary-800)' }}>{formatViolation(editingReport.violationType)}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+                <div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Classification</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary-600)' }}>{formatViolation(editingReport.violationType)}</div>
                 </div>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>Incident Location</div>
+                <div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Location Entry</div>
                   <div style={{ fontSize: '11px', fontWeight: 500 }}>{editingReport.location?.address || 'SECURED'}</div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Enforcement Decision</label>
+                <label className="form-label">Audit Decision</label>
                 <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
                   <option value="pending">Awaiting Review</option>
-                  <option value="approved">Verify Violation</option>
-                  <option value="rejected">Dismiss Case</option>
+                  <option value="approved">Verify Incident</option>
+                  <option value="rejected">Dismiss Incident</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Audit Remarks</label>
+                <label className="form-label">Internal Audit Notes</label>
                 <textarea
                   className="form-textarea"
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Record official verification notes or dismissal justifications..."
+                  placeholder="Record compliance notes or dismissal justification..."
                   rows={3}
                 />
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setEditingReport(null)}>Exit</button>
-              <button className="btn btn-primary" onClick={handleUpdateReport}>Commit Review</button>
+              <button className="btn btn-primary" onClick={handleUpdateReport}>Commit Decision</button>
             </div>
           </div>
-        </div>
-      )}
-
-      {lightboxMedia && (
-        <div className="modal-overlay" style={{ zIndex: 2000, background: 'rgba(0,0,0,0.9)', cursor: 'zoom-out' }} onClick={() => setLightboxMedia(null)}>
-          <img src={lightboxMedia.url} alt="Examination" style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }} />
         </div>
       )}
     </div>

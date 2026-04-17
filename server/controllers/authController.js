@@ -3,9 +3,19 @@ const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Password validation helper
+const validatePassword = (password) => {
+  const errors = [];
+  if (!password || password.length < 8) errors.push('Password must be at least 8 characters');
+  if (!/[A-Z]/.test(password)) errors.push('Must contain at least one uppercase letter (A-Z)');
+  if (!/[a-z]/.test(password)) errors.push('Must contain at least one lowercase letter (a-z)');
+  if (!/[0-9]/.test(password)) errors.push('Must contain at least one digit (0-9)');
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('Must contain at least one special character (!@#$%^&*)');
+  return errors;
+};
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 };
 
 // @desc    Register user
@@ -16,6 +26,15 @@ exports.register = async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide all fields' });
+    }
+
+    // Validate password strength
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      return res.status(400).json({
+        message: 'Password does not meet security requirements',
+        passwordErrors
+      });
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -33,6 +52,11 @@ exports.register = async (req, res) => {
       token: generateToken(user.id)
     });
   } catch (error) {
+    // Handle Sequelize validation errors gracefully
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ message: messages.join('. '), passwordErrors: messages });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -90,6 +114,50 @@ exports.getMe = async (req, res) => {
   }
 };
 
+// @desc    Change password
+// @route   PUT /api/auth/password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Please provide current password and new password' });
+    }
+
+    // Validate new password strength
+    const passwordErrors = validatePassword(newPassword);
+    if (passwordErrors.length > 0) {
+      return res.status(400).json({
+        message: 'New password does not meet security requirements',
+        passwordErrors
+      });
+    }
+
+    const user = await User.scope('withPassword').findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ message: messages.join('. '), passwordErrors: messages });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // @desc    Google login
 // @route   POST /api/auth/google
 exports.googleLogin = async (req, res) => {
@@ -102,7 +170,10 @@ exports.googleLogin = async (req, res) => {
 
     if (!process.env.GOOGLE_CLIENT_ID) {
       console.error('GOOGLE_CLIENT_ID is not set in server .env');
-      return res.status(500).json({ message: 'Google Login is not configured on the server. GOOGLE_CLIENT_ID is missing.' });
+      return res.status(500).json({ 
+        message: 'Google Login is not configured on the server.',
+        errorCode: 'GOOGLE_NOT_CONFIGURED'
+      });
     }
 
     let ticket;
@@ -113,8 +184,22 @@ exports.googleLogin = async (req, res) => {
       });
     } catch (verifyError) {
       console.error('Google token verification failed:', verifyError.message);
+      
+      let userMessage = 'Google authentication failed. ';
+      if (verifyError.message.includes('Token used too late') || verifyError.message.includes('expired')) {
+        userMessage += 'The token has expired. Please try again.';
+      } else if (verifyError.message.includes('audience')) {
+        userMessage += 'Client ID mismatch. Please check Google OAuth configuration.';
+      } else if (verifyError.message.includes('Invalid token')) {
+        userMessage += 'Invalid token received. Please clear your browser cache and retry.';
+      } else {
+        userMessage += 'Please ensure your Google account is valid and try again.';
+      }
+
       return res.status(401).json({ 
-        message: `Google token verification failed: ${verifyError.message}` 
+        message: userMessage,
+        errorCode: 'GOOGLE_VERIFY_FAILED',
+        detail: verifyError.message
       });
     }
     
@@ -138,7 +223,7 @@ exports.googleLogin = async (req, res) => {
       }
     } else {
       // Create new user if not exists
-      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      const randomPassword = 'G' + Math.random().toString(36).slice(-6) + Math.random().toString(36).slice(-6).toUpperCase() + '@1';
       user = await User.create({ name, email, password: randomPassword, role: 'user', avatar: picture || '' });
     }
 
@@ -151,6 +236,9 @@ exports.googleLogin = async (req, res) => {
     });
   } catch (error) {
     console.error('Google login error:', error);
-    res.status(500).json({ message: `Google authentication failed: ${error.message}` });
+    res.status(500).json({ 
+      message: 'Google authentication failed. Please try again later.',
+      errorCode: 'GOOGLE_SERVER_ERROR'
+    });
   }
 };

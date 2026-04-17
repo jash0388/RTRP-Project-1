@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
+const { useState, useEffect, useRef } = React;
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import { analyticsAPI } from '../services/api';
 import L from 'leaflet';

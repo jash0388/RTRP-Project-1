@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const { connectDB } = require('./config/db');
+const sanitize = require('./middleware/sanitize');
 
 // Import models to register them with Sequelize
 const User = require('./models/User');
@@ -22,27 +25,79 @@ const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ===== SECURITY MIDDLEWARE =====
+
+// Helmet — sets secure HTTP headers (XSS, clickjacking, MIME sniffing protection)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' } // Allow uploads to load cross-origin
+}));
+
+// CORS — restrict to known frontend origins only
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman, server-to-server, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS: Origin not allowed'), false);
+  },
+  credentials: true
+}));
+
+// Rate limiting — General API (100 requests per 15 min per IP)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests from this IP. Please try again after 15 minutes.' }
+});
+
+// Rate limiting — Auth routes (5 attempts per 15 min per IP)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts. Your IP has been temporarily blocked. Try again after 15 minutes.' }
+});
+
+// Body parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Input sanitization — XSS prevention on all request bodies
+app.use(sanitize);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// API Routes
+// ===== API ROUTES =====
+
+// Auth routes — with strict rate limiting on login/register
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/google', authLimiter);
 app.use('/api/auth', authRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/police', policeRoutes);
-app.use('/api/analytics', analyticsRoutes);
+
+// Other API routes — with general rate limiting
+app.use('/api/reports', generalLimiter, reportRoutes);
+app.use('/api/admin', generalLimiter, adminRoutes);
+app.use('/api/police', generalLimiter, policeRoutes);
+app.use('/api/analytics', generalLimiter, analyticsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', database: 'MySQL', timestamp: new Date().toISOString() });
 });
 
-// Seed default users
+// Seed default users (with strong passwords)
 const seedUsers = async () => {
   try {
     const adminExists = await User.findOne({ where: { email: 'admin@sphn.com' } });
@@ -50,10 +105,10 @@ const seedUsers = async () => {
       await User.create({
         name: 'Admin',
         email: 'admin@sphn.com',
-        password: 'admin123',
+        password: 'Admin@SPHN2024',
         role: 'admin'
       });
-      console.log('Admin user seeded: admin@sphn.com / admin123');
+      console.log('Admin user seeded: admin@sphn.com / Admin@SPHN2024');
     }
 
     const policeExists = await User.findOne({ where: { email: 'police@sphn.com' } });
@@ -61,10 +116,10 @@ const seedUsers = async () => {
       await User.create({
         name: 'Officer Singh',
         email: 'police@sphn.com',
-        password: 'police123',
+        password: 'Police@SPHN2024',
         role: 'police'
       });
-      console.log('Police user seeded: police@sphn.com / police123');
+      console.log('Police user seeded: police@sphn.com / Police@SPHN2024');
     }
 
     const citizenExists = await User.findOne({ where: { email: 'citizen@sphn.com' } });
@@ -72,10 +127,10 @@ const seedUsers = async () => {
       await User.create({
         name: 'John Citizen',
         email: 'citizen@sphn.com',
-        password: 'citizen123',
+        password: 'Citizen@SPHN2024',
         role: 'user'
       });
-      console.log('Citizen user seeded: citizen@sphn.com / citizen123');
+      console.log('Citizen user seeded: citizen@sphn.com / Citizen@SPHN2024');
     }
   } catch (error) {
     console.log('User seed skipped:', error.message);
@@ -176,6 +231,7 @@ const startServer = async () => {
   await seedReports();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Security: Helmet enabled, CORS restricted, Rate limiting active, Input sanitization on`);
   });
 };
 

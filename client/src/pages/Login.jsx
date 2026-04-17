@@ -41,7 +41,12 @@ export default function Login() {
         default: navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message || 'Google authentication unsuccessful.');
+      const msg = err.message || 'Google authentication unsuccessful.';
+      if (msg.includes('not configured') || msg.includes('GOOGLE_NOT_CONFIGURED')) {
+        setError('Google Sign-In is not configured on the server. Please use email/password login instead.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -130,7 +135,7 @@ export default function Login() {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-lg)' }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={() => setError('Google Login Failed')}
+            onError={() => setError('Google Sign-In failed. This may be due to popup being blocked or the Google Client ID not being configured. Please use email/password login instead.')}
             theme="filled_blue"
             size="large"
             width="100%"

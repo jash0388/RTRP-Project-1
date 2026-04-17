@@ -14,7 +14,7 @@ import UserProfile from './pages/UserProfile';
 import PoliceDashboard from './pages/PoliceDashboard';
 import PoliceReports from './pages/PoliceReports';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminReports from './pages/AdminReports';
+import AdminAuditRegistry from './pages/AdminAuditRegistry';
 import AdminUsers from './pages/AdminUsers';
 import Analytics from './pages/Analytics';
 
@@ -23,6 +23,7 @@ import AppLayout from './components/layout/AppLayout';
 
 function ProtectedRoute({ children, allowedRoles = [] }) {
   const { isAuthenticated, user, loading } = useAuth();
+  const location = window.location.pathname;
 
   if (loading) {
     return (
@@ -32,11 +33,16 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" />;
+  if (!isAuthenticated) {
+    // Redirect to specialized portal login based on route path
+    if (location.startsWith('/admin')) return <Navigate to="/admin/login" />;
+    if (location.startsWith('/police')) return <Navigate to="/police/login" />;
+    return <Navigate to="/login" />;
+  }
 
   // If roles are specified, check access
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-    // Redirect to role-appropriate dashboard
+    // Redirect to the user's appropriate authorized dashboard
     switch (user?.role) {
       case 'admin': return <Navigate to="/admin" />;
       case 'police': return <Navigate to="/police" />;
@@ -111,7 +117,7 @@ function App() {
       } />
       <Route path="/admin/reports" element={
         <ProtectedRoute allowedRoles={['admin']}>
-          <AppLayout><AdminReports /></AppLayout>
+          <AppLayout><AdminAuditRegistry /></AppLayout>
         </ProtectedRoute>
       } />
       <Route path="/admin/users" element={
