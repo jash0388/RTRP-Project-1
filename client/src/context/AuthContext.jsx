@@ -1,4 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { auth } from '../firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
 
 const AuthContext = createContext(null);
 
@@ -14,110 +23,88 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const text = await res.text();
-        if (text) {
-          const data = JSON.parse(text);
-          setUser(data);
-        } else {
-          logout();
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const idToken = await firebaseUser.getIdToken();
+        localStorage.setItem('sphn_token', idToken);
+        setToken(idToken);
+        
+        // You might want to map firebase user to your custom user format
+        // For now, defaulting role to citizen or deriving from email
+        let role = 'citizen';
+        if (firebaseUser.email && firebaseUser.email.includes('admin')) {
+          role = 'admin';
+        } else if (firebaseUser.email && firebaseUser.email.includes('police')) {
+          role = 'police';
         }
-      } else {
-        logout();
-      }
-    } catch {
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const safeJsonParse = async (res) => {
-    const text = await res.text();
-    if (!text) return null;
-    try {
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
-  };
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          role: role
+        });
+      } else {
+        localStorage.removeItem('sphn_token');
+        setToken(null);
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email, password) => {
-    let res;
     try {
-      res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-    } catch {
-      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Wait for auth state change to set user, but we can return mocked data for immediate navigation
+      let role = 'citizen';
+      if (email.includes('admin')) role = 'admin';
+      if (email.includes('police')) role = 'police';
+      
+      return { email, role };
+    } catch (err) {
+      throw new Error(err.message || 'Login failed. Please check your credentials.');
     }
-    const data = await safeJsonParse(res);
-    if (!res.ok) throw new Error(data?.message || 'Login failed. Please check your credentials.');
-    if (!data?.token) throw new Error('Invalid response from server.');
-    localStorage.setItem('sphn_token', data.token);
-    setToken(data.token);
-    setUser(data);
-    return data;
   };
 
   const register = async (name, email, password) => {
-    let res;
     try {
-      res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-    } catch {
-      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // We could update profile with name here, but keeping it simple
+      let role = 'citizen';
+      if (email.includes('admin')) role = 'admin';
+      if (email.includes('police')) role = 'police';
+
+      return { email, name, role };
+    } catch (err) {
+      throw new Error(err.message || 'Registration failed.');
     }
-    const data = await safeJsonParse(res);
-    if (!res.ok) throw new Error(data?.message || 'Registration failed.');
-    if (!data?.token) throw new Error('Invalid response from server.');
-    localStorage.setItem('sphn_token', data.token);
-    setToken(data.token);
-    setUser(data);
-    return data;
   };
 
-  const googleLogin = async (credentialToken) => {
-    let res;
+  const googleLogin = async () => {
     try {
-      res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: credentialToken })
-      });
-    } catch {
-      throw new Error('Unable to connect to the server. Make sure the backend is running.');
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user.email || '';
+      
+      let role = 'citizen';
+      if (email.includes('admin')) role = 'admin';
+      if (email.includes('police')) role = 'police';
+
+      return { email, name: result.user.displayName, role };
+    } catch (err) {
+      throw new Error(err.message || 'Google Login failed. Please try again.');
     }
-    const data = await safeJsonParse(res);
-    if (!res.ok) throw new Error(data?.message || 'Google Login failed. Please try again.');
-    if (!data?.token) throw new Error('Invalid response from server.');
-    localStorage.setItem('sphn_token', data.token);
-    setToken(data.token);
-    setUser(data);
-    return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('sphn_token');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Logout error', err);
+    }
   };
 
   const value = {
@@ -134,7 +121,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
