@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   const services = [
     {
@@ -27,7 +27,24 @@ export default function Home() {
   ];
 
   return (
-    <div className="fade-in">
+    <div className="fade-in" style={{ position: 'relative' }}>
+      {isAuthenticated && (
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 100 }}>
+          <button 
+            onClick={logout} 
+            className="btn" 
+            style={{
+              background: '#ef4444',
+              color: 'white',
+              border: 'none',
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            Log Out
+          </button>
+        </div>
+      )}
       {/* Hero Section */}
       <section style={{ 
         background: 'var(--primary-800)', 
