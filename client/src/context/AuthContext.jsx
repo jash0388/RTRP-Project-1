@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
         
         // You might want to map firebase user to your custom user format
         // For now, defaulting role to citizen or deriving from email
-        let role = 'citizen';
+        let role = 'user';
         if (firebaseUser.email && firebaseUser.email.includes('admin')) {
           role = 'admin';
         } else if (firebaseUser.email && firebaseUser.email.includes('police')) {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       // Wait for auth state change to set user, but we can return mocked data for immediate navigation
-      let role = 'citizen';
+      let role = 'user';
       if (email.includes('admin')) role = 'admin';
       if (email.includes('police')) role = 'police';
       
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // We could update profile with name here, but keeping it simple
-      let role = 'citizen';
+      let role = 'user';
       if (email.includes('admin')) role = 'admin';
       if (email.includes('police')) role = 'police';
 
@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, provider);
       const email = result.user.email || '';
       
-      let role = 'citizen';
+      let role = 'user';
       if (email.includes('admin')) role = 'admin';
       if (email.includes('police')) role = 'police';
 
