@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    const user = await User.scope('withPassword').findOne({ where: { email } });
+    const user = await User.scope('withPassword').findOne({ where: { email: email.toLowerCase().trim() } });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }

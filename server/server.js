@@ -32,17 +32,18 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' } // Allow uploads to load cross-origin
 }));
 
-// CORS — restrict to known frontend origins only
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173'
+// CORS — allow local dev plus Replit dev/app domains
+const allowedOriginPatterns = [
+  /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https?:\/\/.*\.replit\.dev$/,
+  /^https?:\/\/.*\.replit\.app$/,
+  /^https?:\/\/.*\.repl\.co$/,
 ];
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (Postman, server-to-server, mobile apps)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOriginPatterns.some((p) => p.test(origin))) {
       return callback(null, true);
     }
     return callback(new Error('CORS: Origin not allowed'), false);
@@ -102,6 +103,29 @@ const { createFirebaseUser } = require('./config/firebase');
 
 const seedUsers = async () => {
   try {
+    // Primary admin (custom credentials) — uses raw insert to bypass strong-password validation
+    const bcrypt = require('bcryptjs');
+    const { sequelize } = require('./config/db');
+    const primaryAdminEmail = 'nallagulaabhilash@gmail.com';
+    const primaryAdminPlain = 'admin123';
+    const primaryAdminExists = await User.findOne({ where: { email: primaryAdminEmail } });
+    if (!primaryAdminExists) {
+      const hashed = await bcrypt.hash(primaryAdminPlain, 12);
+      await sequelize.query(
+        `INSERT INTO users (name, email, password, role, avatar, "isBanned", "createdAt", "updatedAt")
+         VALUES (:name, :email, :password, :role, '', false, NOW(), NOW())`,
+        {
+          replacements: {
+            name: 'Abhilash Nallagula',
+            email: primaryAdminEmail,
+            password: hashed,
+            role: 'admin'
+          }
+        }
+      );
+      console.log(`Primary admin seeded: ${primaryAdminEmail} / ${primaryAdminPlain}`);
+    }
+
     const adminExists = await User.findOne({ where: { email: 'admin@sphn.com' } });
     if (!adminExists) {
       await User.create({
