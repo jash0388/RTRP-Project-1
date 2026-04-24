@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BackToHome from '../components/BackToHome';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -48,6 +49,7 @@ export default function Login() {
 
   return (
     <div style={{ background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 'var(--space-md)' }}>
+      <BackToHome />
       <div className="card fade-in" style={{ 
         maxWidth: '420px', 
         width: '100%', 

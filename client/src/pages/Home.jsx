@@ -77,6 +77,30 @@ export default function Home() {
         <div className="rs-hero-blob rs-blob-1" />
         <div className="rs-hero-blob rs-blob-2" />
 
+        {/* Floating 3D shapes */}
+        <div className="rs-3d-stage" aria-hidden="true">
+          <div className="rs-float rs-float-card-1">
+            <div className="rs-float-dot" style={{ background: '#10b981' }} />
+            <div className="rs-float-line" />
+            <div className="rs-float-line short" />
+          </div>
+          <div className="rs-float rs-float-card-2">
+            <div className="rs-float-badge">✓</div>
+            <div className="rs-float-line" />
+            <div className="rs-float-line short" />
+          </div>
+          <div className="rs-float rs-float-cube">
+            <div className="rs-cube-face rs-cube-front" />
+            <div className="rs-cube-face rs-cube-back" />
+            <div className="rs-cube-face rs-cube-right" />
+            <div className="rs-cube-face rs-cube-left" />
+            <div className="rs-cube-face rs-cube-top" />
+            <div className="rs-cube-face rs-cube-bottom" />
+          </div>
+          <div className="rs-float rs-float-pin">📍</div>
+          <div className="rs-float rs-float-bolt">⚡</div>
+        </div>
+
         <div className="rs-hero-content">
           <span className="rs-pill">
             <span className="rs-pill-dot" />
@@ -183,7 +207,7 @@ export default function Home() {
       <style>{`
         .rs-home {
           min-height: 100vh;
-          width: 100vw;
+          width: 100%;
           max-width: 100%;
           margin: 0;
           padding: 0;
@@ -192,8 +216,7 @@ export default function Home() {
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
           overflow-x: hidden;
           position: relative;
-          left: 0;
-          right: 0;
+          perspective: 1400px;
         }
 
         /* ===== NAV ===== */
@@ -230,10 +253,20 @@ export default function Home() {
         .rs-greeting strong { color: #0f172a; font-weight: 700; }
 
         /* ===== BUTTONS ===== */
+        .rs-btn,
+        .rs-btn:hover,
+        .rs-btn:focus,
+        .rs-btn:active,
+        .rs-feature-link,
+        .rs-feature-link:hover,
+        .rs-footer-links a,
+        .rs-footer-links a:hover {
+          text-decoration: none !important;
+        }
         .rs-btn {
           display: inline-flex; align-items: center; gap: 8px;
           font-family: inherit; font-weight: 600;
-          border: none; cursor: pointer; text-decoration: none;
+          border: none; cursor: pointer;
           transition: all 180ms ease;
           white-space: nowrap;
         }
@@ -252,12 +285,21 @@ export default function Home() {
         .rs-btn-outline:hover { border-color: #cbd5e1; color: #0f172a; }
         .rs-btn-primary {
           padding: 9px 16px; font-size: 13.5px;
-          background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+          background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
           color: white;
           border-radius: 8px;
-          box-shadow: 0 4px 12px -2px rgba(29,78,216,0.4);
+          box-shadow:
+            0 4px 12px -2px rgba(124,58,237,0.45),
+            0 1px 0 rgba(255,255,255,0.25) inset,
+            0 -2px 0 rgba(0,0,0,0.12) inset;
         }
-        .rs-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -4px rgba(29,78,216,0.5); }
+        .rs-btn-primary:hover {
+          transform: translateY(-1px);
+          box-shadow:
+            0 10px 22px -4px rgba(219,39,119,0.5),
+            0 1px 0 rgba(255,255,255,0.3) inset,
+            0 -2px 0 rgba(0,0,0,0.15) inset;
+        }
 
         /* ===== HERO ===== */
         .rs-hero {
@@ -285,6 +327,129 @@ export default function Home() {
         }
         .rs-blob-1 { top: -120px; right: -80px; width: 360px; height: 360px; background: #c4b5fd; }
         .rs-blob-2 { bottom: -150px; left: -100px; width: 400px; height: 400px; background: #93c5fd; }
+
+        /* ===== 3D FLOATING ELEMENTS ===== */
+        .rs-3d-stage {
+          position: absolute; inset: 0;
+          pointer-events: none;
+          transform-style: preserve-3d;
+          perspective: 1200px;
+          overflow: hidden;
+        }
+        .rs-float {
+          position: absolute;
+          transform-style: preserve-3d;
+          will-change: transform;
+        }
+        /* Card 1 — top left */
+        .rs-float-card-1 {
+          top: 14%; left: 6%;
+          width: 180px; padding: 14px 16px;
+          background: rgba(255,255,255,0.9);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(15,23,42,0.06);
+          border-radius: 14px;
+          box-shadow:
+            0 24px 60px -20px rgba(37,99,235,0.35),
+            0 8px 18px -8px rgba(124,58,237,0.18);
+          transform: rotateX(8deg) rotateY(-14deg) rotateZ(-3deg) translateZ(40px);
+          animation: rs-float-a 7s ease-in-out infinite;
+        }
+        /* Card 2 — top right */
+        .rs-float-card-2 {
+          top: 22%; right: 6%;
+          width: 160px; padding: 14px 16px;
+          background: linear-gradient(135deg, #2563eb 0%, #7c3aed 60%, #db2777 100%);
+          color: white;
+          border-radius: 14px;
+          box-shadow:
+            0 24px 60px -16px rgba(124,58,237,0.5),
+            0 10px 22px -10px rgba(219,39,119,0.4);
+          transform: rotateX(10deg) rotateY(14deg) rotateZ(4deg) translateZ(60px);
+          animation: rs-float-b 8s ease-in-out infinite;
+        }
+        .rs-float-card-2 .rs-float-line { background: rgba(255,255,255,0.5); }
+        .rs-float-line {
+          height: 6px; border-radius: 999px;
+          background: #e2e8f0;
+          margin-top: 8px;
+        }
+        .rs-float-line.short { width: 60%; }
+        .rs-float-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          box-shadow: 0 0 0 4px rgba(16,185,129,0.18);
+        }
+        .rs-float-badge {
+          width: 26px; height: 26px; border-radius: 8px;
+          background: rgba(255,255,255,0.25);
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 800; font-size: 14px;
+          color: white;
+        }
+        /* Cube — bottom right */
+        .rs-float-cube {
+          top: 58%; right: 12%;
+          width: 80px; height: 80px;
+          transform-style: preserve-3d;
+          animation: rs-cube-spin 14s linear infinite;
+        }
+        .rs-cube-face {
+          position: absolute; inset: 0;
+          border-radius: 10px;
+          opacity: 0.9;
+          box-shadow: 0 0 30px rgba(124,58,237,0.4) inset;
+        }
+        .rs-cube-front  { transform: translateZ(40px);  background: linear-gradient(135deg, #2563eb, #7c3aed); }
+        .rs-cube-back   { transform: rotateY(180deg) translateZ(40px); background: linear-gradient(135deg, #db2777, #7c3aed); }
+        .rs-cube-right  { transform: rotateY(90deg)  translateZ(40px); background: linear-gradient(135deg, #7c3aed, #db2777); }
+        .rs-cube-left   { transform: rotateY(-90deg) translateZ(40px); background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .rs-cube-top    { transform: rotateX(90deg)  translateZ(40px); background: linear-gradient(135deg, #c4b5fd, #93c5fd); }
+        .rs-cube-bottom { transform: rotateX(-90deg) translateZ(40px); background: linear-gradient(135deg, #f9a8d4, #c4b5fd); }
+        /* Floating emoji chips */
+        .rs-float-pin, .rs-float-bolt {
+          width: 44px; height: 44px;
+          background: white;
+          border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px;
+          box-shadow:
+            0 14px 30px -10px rgba(15,23,42,0.18),
+            0 1px 0 rgba(255,255,255,1) inset;
+          border: 1px solid rgba(15,23,42,0.06);
+        }
+        .rs-float-pin {
+          bottom: 18%; left: 12%;
+          transform: rotateX(12deg) rotateY(-10deg) translateZ(50px);
+          animation: rs-float-c 6s ease-in-out infinite;
+        }
+        .rs-float-bolt {
+          top: 12%; right: 28%;
+          transform: rotateX(-8deg) rotateY(12deg) translateZ(70px);
+          animation: rs-float-a 5.5s ease-in-out infinite;
+        }
+        @keyframes rs-float-a {
+          0%, 100% { transform: rotateX(8deg) rotateY(-14deg) rotateZ(-3deg) translate3d(0, 0, 40px); }
+          50%      { transform: rotateX(8deg) rotateY(-14deg) rotateZ(-3deg) translate3d(0, -14px, 40px); }
+        }
+        @keyframes rs-float-b {
+          0%, 100% { transform: rotateX(10deg) rotateY(14deg) rotateZ(4deg) translate3d(0, 0, 60px); }
+          50%      { transform: rotateX(10deg) rotateY(14deg) rotateZ(4deg) translate3d(0, -18px, 60px); }
+        }
+        @keyframes rs-float-c {
+          0%, 100% { transform: rotateX(12deg) rotateY(-10deg) translate3d(0, 0, 50px); }
+          50%      { transform: rotateX(12deg) rotateY(-10deg) translate3d(0, -10px, 50px); }
+        }
+        @keyframes rs-cube-spin {
+          0%   { transform: rotateX(-20deg) rotateY(0deg); }
+          100% { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+        /* Hide 3D extras on small screens to keep mobile clean */
+        @media (max-width: 900px) {
+          .rs-float-card-1, .rs-float-card-2, .rs-float-cube, .rs-float-pin, .rs-float-bolt {
+            display: none;
+          }
+        }
 
         .rs-hero-content {
           position: relative;
@@ -339,28 +504,53 @@ export default function Home() {
           flex-wrap: wrap; margin-bottom: 36px;
         }
         .rs-btn-hero-primary {
-          padding: 13px 24px; font-size: 14.5px; font-weight: 700;
-          background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+          position: relative;
+          padding: 14px 28px; font-size: 15px; font-weight: 700;
+          background:
+            linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #db2777 100%);
           color: white;
-          border-radius: 11px;
-          box-shadow: 0 8px 24px -6px rgba(124,58,237,0.5);
+          border-radius: 14px;
+          box-shadow:
+            0 16px 36px -10px rgba(124,58,237,0.55),
+            0 6px 14px -4px rgba(219,39,119,0.4),
+            0 1px 0 rgba(255,255,255,0.35) inset,
+            0 -3px 0 rgba(0,0,0,0.18) inset;
+          transform-style: preserve-3d;
+          transform: translateY(0) translateZ(0);
+        }
+        .rs-btn-hero-primary::before {
+          content: '';
+          position: absolute; inset: 0;
+          border-radius: inherit;
+          background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 50%);
+          pointer-events: none;
         }
         .rs-btn-hero-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 32px -8px rgba(124,58,237,0.6);
+          transform: translateY(-3px) translateZ(0);
+          box-shadow:
+            0 24px 48px -12px rgba(124,58,237,0.65),
+            0 10px 22px -6px rgba(219,39,119,0.5),
+            0 1px 0 rgba(255,255,255,0.4) inset,
+            0 -3px 0 rgba(0,0,0,0.2) inset;
         }
         .rs-btn-hero-secondary {
-          padding: 13px 24px; font-size: 14.5px; font-weight: 600;
+          padding: 14px 26px; font-size: 15px; font-weight: 700;
           background: white;
-          color: #1d4ed8;
-          border: 1px solid #e2e8f0;
-          border-radius: 11px;
-          box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+          color: #6d28d9;
+          border: 1.5px solid #e9d5ff;
+          border-radius: 14px;
+          box-shadow:
+            0 8px 20px -6px rgba(124,58,237,0.18),
+            0 1px 0 rgba(255,255,255,1) inset,
+            0 -2px 0 rgba(124,58,237,0.06) inset;
         }
         .rs-btn-hero-secondary:hover {
-          border-color: #1d4ed8;
-          background: #f8fafc;
-          transform: translateY(-2px);
+          border-color: #c4b5fd;
+          background: linear-gradient(180deg, #ffffff, #faf5ff);
+          transform: translateY(-3px);
+          box-shadow:
+            0 14px 28px -8px rgba(124,58,237,0.28),
+            0 1px 0 rgba(255,255,255,1) inset;
         }
         .rs-arrow { transition: transform 180ms ease; display: inline-block; }
         .rs-btn:hover .rs-arrow,
@@ -417,18 +607,34 @@ export default function Home() {
           gap: 18px;
         }
         .rs-feature-card {
+          position: relative;
           background: white;
           border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 26px 24px;
+          border-radius: 18px;
+          padding: 28px 24px;
           display: flex; flex-direction: column;
-          transition: all 220ms ease;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+          transition: transform 320ms cubic-bezier(.2,.8,.2,1), box-shadow 320ms ease, border-color 320ms ease;
+          box-shadow:
+            0 1px 2px rgba(15,23,42,0.04),
+            0 8px 18px -10px rgba(15,23,42,0.08);
+          transform-style: preserve-3d;
+          transform: perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0);
+          will-change: transform;
+        }
+        .rs-feature-card::before {
+          content: '';
+          position: absolute; inset: 0;
+          border-radius: inherit;
+          background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0) 40%);
+          pointer-events: none;
+          opacity: 0.6;
         }
         .rs-feature-card:hover {
-          transform: translateY(-3px);
+          transform: perspective(900px) rotateX(4deg) rotateY(-6deg) translateY(-6px) translateZ(8px);
           border-color: #c4b5fd;
-          box-shadow: 0 14px 28px -10px rgba(124,58,237,0.18);
+          box-shadow:
+            0 30px 50px -18px rgba(124,58,237,0.28),
+            0 10px 22px -10px rgba(37,99,235,0.18);
         }
         .rs-feature-icon {
           width: 48px; height: 48px;
