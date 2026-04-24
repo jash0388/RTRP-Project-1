@@ -183,11 +183,17 @@ export default function Home() {
       <style>{`
         .rs-home {
           min-height: 100vh;
-          width: 100%;
+          width: 100vw;
+          max-width: 100%;
+          margin: 0;
+          padding: 0;
           background: #f8fafc;
           color: #0f172a;
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
           overflow-x: hidden;
+          position: relative;
+          left: 0;
+          right: 0;
         }
 
         /* ===== NAV ===== */

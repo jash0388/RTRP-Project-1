@@ -117,6 +117,13 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -129,7 +136,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background var(--transition-base), color var(--transition-base);
-  overflow-x: hidden;
 }
 
 a {
