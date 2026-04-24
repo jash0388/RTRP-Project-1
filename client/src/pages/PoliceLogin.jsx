@@ -7,7 +7,7 @@ export default function PoliceLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { policeLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,13 +16,8 @@ export default function PoliceLogin() {
     setLoading(true);
 
     try {
-      const data = await login(email, password, 'police');
-      // Allow both police and admin to login here if they have credentials, 
-      // but primarily intended for enforcement.
-      if (data.role === 'user') {
-        throw new Error('Access denied. This portal is reserved for Enforcement Personnel.');
-      }
-      navigate('/police');
+      const data = await policeLogin(email, password);
+      navigate(data.role === 'admin' ? '/admin' : '/police');
     } catch (err) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
     } finally {

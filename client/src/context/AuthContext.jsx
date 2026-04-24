@@ -136,33 +136,39 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Admin Login via Supabase
+   * Admin Login — direct email/password against the backend (Postgres + bcrypt).
+   * Falls back to Supabase only if explicitly enabled in the future.
    */
   const adminLogin = async (email, password) => {
     try {
-      // 1. Authenticate with Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw error;
+      const data = await authAPI.login(email, password);
+      if (data.role !== 'admin') {
+        throw new Error('Access denied. This portal is restricted to System Administrators.');
       }
-
-      // 2. Exchange Supabase token for backend JWT
-      const data = await authAPI.supabaseLogin(authData.session.access_token);
-
-      // 3. Store backend token and user data
       localStorage.setItem('sphn_token', data.token);
       setToken(data.token);
       setUser(data);
-
       return data;
     } catch (err) {
-      // Sign out of Supabase if backend rejected
-      try { await supabase.auth.signOut(); } catch (_) {}
       throw new Error(err.message || 'Admin login failed. Please check your credentials.');
+    }
+  };
+
+  /**
+   * Police Login — direct email/password against the backend.
+   */
+  const policeLogin = async (email, password) => {
+    try {
+      const data = await authAPI.login(email, password);
+      if (data.role !== 'police' && data.role !== 'admin') {
+        throw new Error('Access denied. This portal is reserved for Enforcement Personnel.');
+      }
+      localStorage.setItem('sphn_token', data.token);
+      setToken(data.token);
+      setUser(data);
+      return data;
+    } catch (err) {
+      throw new Error(err.message || 'Login failed. Please check your credentials.');
     }
   };
 
@@ -191,6 +197,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     adminLogin,
+    policeLogin,
     googleLogin,
     register,
     logout,
