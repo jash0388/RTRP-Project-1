@@ -13,6 +13,8 @@ export default function AdminReports() {
   const [editingReport, setEditingReport] = useState(null);
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editNumberPlate, setEditNumberPlate] = useState('');
+  const [editVehicleType, setEditVehicleType] = useState('');
   const [showMap, setShowMap] = useState(false);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -80,11 +82,16 @@ export default function AdminReports() {
   const handleUpdateReport = async () => {
     if (!editingReport) return;
     try {
-      await adminAPI.updateReport(editingReport._id, {
+      const data = await adminAPI.updateReport(editingReport._id, {
         status: editStatus,
-        adminNotes: editNotes
+        adminNotes: editNotes,
+        verifiedNumberPlate: editNumberPlate,
+        verifiedVehicleType: editVehicleType
       });
       setEditingReport(null);
+      if (editStatus === 'resolved') {
+        alert('✅ Report resolved and deleted successfully.');
+      }
       loadReports();
     } catch (err) {
       console.error('Failed to update report:', err);
@@ -105,6 +112,8 @@ export default function AdminReports() {
     setEditingReport(report);
     setEditStatus(report.status);
     setEditNotes(report.adminNotes || '');
+    setEditNumberPlate(report.verifiedNumberPlate || '');
+    setEditVehicleType(report.verifiedVehicleType || '');
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
@@ -134,6 +143,7 @@ export default function AdminReports() {
               <option value="pending">Awaiting Review</option>
               <option value="approved">Verified</option>
               <option value="rejected">Dismissed</option>
+              <option value="resolved">Resolved</option>
             </select>
 
             <select
@@ -189,6 +199,7 @@ export default function AdminReports() {
               <table className="table">
                 <thead>
                   <tr>
+                    <th>Evidence</th>
                     <th>Reporter Entity</th>
                     <th>Incident Category</th>
                     <th>Observation Point</th>
@@ -202,16 +213,32 @@ export default function AdminReports() {
                   {reports.map(r => (
                     <tr key={r._id}>
                       <td>
+                        {r.media && r.media.length > 0 ? (
+                          <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', cursor: 'pointer' }} onClick={() => openEdit(r)}>
+                            {r.media[0].type === 'video' ? (
+                              <div style={{ width: 48, height: 48, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                <video src={r.media[0].url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '16px' }}>▶</div>
+                              </div>
+                            ) : (
+                              <img src={r.media[0].url} alt="Evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            )}
+                          </div>
+                        ) : (
+                          <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: 'var(--text-tertiary)' }}>📷</div>
+                        )}
+                      </td>
+                      <td>
                         <div style={{ fontWeight: 800, color: 'var(--primary-600)' }}>{r.user?.name || 'Anonymous'}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600 }}>ID: {r.user?._id?.slice(-6)}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600 }}>ID: {r.user?._id?.toString().slice(-6)}</div>
                       </td>
                       <td><span style={{ fontSize: 'var(--font-xs)', fontWeight: 700 }}>{formatViolation(r.violationType)}</span></td>
                       <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', maxWidth: '200px' }}>
                         {r.location?.address || 'GPS Subsystem Active'}
                       </td>
                       <td>
-                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.aiResults?.numberPlate || 'SECURED'}</div>
-                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.aiResults?.vehicleType || 'Unknown'}</div>
+                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.verifiedNumberPlate || '—'}</div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.verifiedVehicleType || '—'}</div>
                       </td>
                       <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
@@ -270,11 +297,35 @@ export default function AdminReports() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">Verified Vehicle Type</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editVehicleType}
+                  onChange={(e) => setEditVehicleType(e.target.value)}
+                  placeholder="e.g., Car, Motorcycle, Truck"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Verified Number Plate</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editNumberPlate}
+                  onChange={(e) => setEditNumberPlate(e.target.value.toUpperCase())}
+                  placeholder="e.g., MH02AB1234"
+                  style={{ textTransform: 'uppercase', fontFamily: 'monospace' }}
+                />
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Audit Decision</label>
                 <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
                   <option value="pending">Awaiting Review</option>
                   <option value="approved">Verify Incident</option>
                   <option value="rejected">Dismiss Incident</option>
+                  <option value="resolved">✅ Mark Resolved (Deletes Report & Media)</option>
                 </select>
               </div>
 

@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await login(email, password, 'user');
       switch (data.role) {
         case 'admin': navigate('/admin'); break;
         case 'police': navigate('/police'); break;
@@ -29,7 +29,7 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSuccess = async () => {
+  const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
     try {
@@ -129,7 +129,7 @@ export default function Login() {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-lg)' }}>
           <button 
             type="button"
-            onClick={handleGoogleSuccess}
+            onClick={handleGoogleLogin}
             className="btn"
             style={{ width: '100%', padding: '0.75rem', fontSize: 'var(--font-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'white', color: '#333', border: '1px solid #ccc' }}
           >

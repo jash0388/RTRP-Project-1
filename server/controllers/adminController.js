@@ -1,6 +1,131 @@
 const Report = require('../models/Report');
 const User = require('../models/User');
 const { Op } = require('sequelize');
+const { createFirebaseUser, deleteFirebaseUser } = require('../config/firebase');
+
+// @desc    Register a police officer (admin only)
+// @route   POST /api/admin/register-police
+exports.registerPolice = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
+    // Check if user already exists in backend DB
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ message: 'A user with this email already exists.' });
+    }
+
+    // Create in Firebase Auth first
+    await createFirebaseUser(email, password, name);
+
+    // Create in backend DB with role 'police'
+    // Use a strong random password for the DB record (Firebase handles actual auth)
+    const dbPassword = 'Fb' + Math.random().toString(36).slice(-6) + Math.random().toString(36).slice(-6).toUpperCase() + '@1';
+    const user = await User.create({
+      name,
+      email,
+      password: dbPassword,
+      role: 'police'
+    });
+
+    res.status(201).json({
+      message: `Police officer "${name}" registered successfully.`,
+      user: { _id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error('Register police error:', error);
+    res.status(500).json({ message: 'Failed to register police officer.', error: error.message });
+  }
+};
+
+// @desc    Register an admin (admin only)
+// @route   POST /api/admin/register-admin
+exports.registerAdmin = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
+    // Check if user already exists in backend DB
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ message: 'A user with this email already exists.' });
+    }
+
+    // Create in Firebase Auth first
+    await createFirebaseUser(email, password, name);
+
+    // Create in backend DB with role 'admin'
+    const dbPassword = 'Fb' + Math.random().toString(36).slice(-6) + Math.random().toString(36).slice(-6).toUpperCase() + '@1';
+    const user = await User.create({
+      name,
+      email,
+      password: dbPassword,
+      role: 'admin'
+    });
+
+    res.status(201).json({
+      message: `Admin "${name}" registered successfully.`,
+      user: { _id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error('Register admin error:', error);
+    res.status(500).json({ message: 'Failed to register admin.', error: error.message });
+  }
+};
+
+// @desc    Register a user (admin only)
+// @route   POST /api/admin/register-user
+exports.registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ message: 'A user with this email already exists.' });
+    }
+
+    await createFirebaseUser(email, password, name);
+
+    const dbPassword = 'Fb' + Math.random().toString(36).slice(-6) + Math.random().toString(36).slice(-6).toUpperCase() + '@1';
+    const user = await User.create({
+      name,
+      email,
+      password: dbPassword,
+      role: 'user'
+    });
+
+    res.status(201).json({
+      message: `Citizen user "${name}" registered successfully.`,
+      user: { _id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error('Register user error:', error);
+    res.status(500).json({ message: 'Failed to register user.', error: error.message });
+  }
+};
 
 // @desc    Get all reports (admin)
 // @route   GET /api/admin/reports
@@ -50,15 +175,40 @@ exports.getAllReports = async (req, res) => {
 // @route   PUT /api/admin/reports/:id
 exports.updateReport = async (req, res) => {
   try {
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, verifiedNumberPlate, verifiedVehicleType } = req.body;
 
     const report = await Report.findByPk(req.params.id);
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
 
+    // If status is 'resolved', delete the report and its media files
+    if (status === 'resolved') {
+      const fs = require('fs');
+      const path = require('path');
+      if (report.media && Array.isArray(report.media)) {
+        report.media.forEach(m => {
+          if (m.url) {
+            const filePath = path.join(__dirname, '..', m.url);
+            try {
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`Deleted media file: ${filePath}`);
+              }
+            } catch (err) {
+              console.error(`Failed to delete media file: ${filePath}`, err.message);
+            }
+          }
+        });
+      }
+      await report.destroy();
+      return res.json({ message: 'Report resolved and deleted successfully.' });
+    }
+
     if (status) report.status = status;
     if (adminNotes !== undefined) report.adminNotes = adminNotes;
+    if (verifiedNumberPlate !== undefined) report.verifiedNumberPlate = verifiedNumberPlate;
+    if (verifiedVehicleType !== undefined) report.verifiedVehicleType = verifiedVehicleType;
 
     await report.save();
 

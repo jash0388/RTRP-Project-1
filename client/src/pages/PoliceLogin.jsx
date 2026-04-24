@@ -16,7 +16,7 @@ export default function PoliceLogin() {
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await login(email, password, 'police');
       // Allow both police and admin to login here if they have credentials, 
       // but primarily intended for enforcement.
       if (data.role === 'user') {

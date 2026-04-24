@@ -148,8 +148,8 @@ export default function ReportHistory() {
                 </div>
               )}
 
-              {/* Automated Audit (AI Results) */}
-              {selectedReport.aiResults && (
+              {/* Manual Verification Results */}
+              {(selectedReport.verifiedNumberPlate || selectedReport.verifiedVehicleType) && (
                 <div style={{
                   marginTop: 'var(--space-lg)',
                   padding: 'var(--space-md)',
@@ -157,12 +157,10 @@ export default function ReportHistory() {
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-color)'
                 }}>
-                  <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary-800)', marginBottom: 'var(--space-md)' }}>Automated System Diagnostics</div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary-800)', marginBottom: 'var(--space-md)' }}>Verified Officer Diagnostics</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)', fontSize: 'var(--font-sm)' }}>
-                    <div>Helmet Detection: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.helmetDetected === null ? 'INCONCLUSIVE' : selectedReport.aiResults.helmetDetected ? 'IDENTIFIED' : 'NOT DETECTED'}</span></div>
-                    <div>Vehicle Category: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.vehicleType || 'PROCESSING'}</span></div>
-                    <div>Registration Plate: <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{selectedReport.aiResults.numberPlate || 'ENCRYPTED'}</span></div>
-                    <div>Verification Confidence: <span style={{ fontWeight: 700 }}>{selectedReport.aiResults.confidence ? `${(selectedReport.aiResults.confidence * 100).toFixed(0)}%` : 'PENDING'}</span></div>
+                    {selectedReport.verifiedVehicleType && <div>Vehicle Category: <span style={{ fontWeight: 700 }}>{selectedReport.verifiedVehicleType}</span></div>}
+                    {selectedReport.verifiedNumberPlate && <div>Registration Plate: <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{selectedReport.verifiedNumberPlate}</span></div>}
                   </div>
                 </div>
               )}

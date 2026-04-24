@@ -1,6 +1,5 @@
 const Report = require('../models/Report');
 const User = require('../models/User');
-const axios = require('axios');
 
 // @desc    Create violation report
 // @route   POST /api/reports
@@ -24,36 +23,6 @@ exports.createReport = async (req, res) => {
       });
     }
 
-    // Try AI analysis on first image
-    let aiResults = {
-      helmetDetected: null,
-      numberPlate: '',
-      vehicleType: '',
-      autoTags: [],
-      confidence: 0
-    };
-
-    if (media.length > 0 && media[0].type === 'image') {
-      try {
-        const aiResponse = await axios.post(
-          `${process.env.AI_SERVICE_URL || 'http://localhost:5001'}/analyze`,
-          { imageUrl: media[0].url },
-          { timeout: 10000 }
-        );
-        if (aiResponse.data) {
-          aiResults = {
-            helmetDetected: aiResponse.data.helmetDetected,
-            numberPlate: aiResponse.data.numberPlate || '',
-            vehicleType: aiResponse.data.vehicleType || '',
-            autoTags: aiResponse.data.violations || [],
-            confidence: aiResponse.data.confidence || 0
-          };
-        }
-      } catch (aiError) {
-        console.log('AI service unavailable, skipping analysis:', aiError.message);
-      }
-    }
-
     const report = await Report.create({
       userId: req.user.id,
       violationType,
@@ -61,12 +30,7 @@ exports.createReport = async (req, res) => {
       media,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
-      address: address || '',
-      aiHelmetDetected: aiResults.helmetDetected,
-      aiNumberPlate: aiResults.numberPlate,
-      aiVehicleType: aiResults.vehicleType,
-      aiAutoTags: aiResults.autoTags,
-      aiConfidence: aiResults.confidence,
+      address: address || ''
     });
 
     const user = await User.findByPk(req.user.id);

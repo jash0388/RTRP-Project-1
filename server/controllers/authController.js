@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const { verifyFirebaseToken } = require('../config/firebase');
 
 // Password validation helper
 const validatePassword = (password) => {
@@ -240,5 +241,135 @@ exports.googleLogin = async (req, res) => {
       message: 'Google authentication failed. Please try again later.',
       errorCode: 'GOOGLE_SERVER_ERROR'
     });
+  }
+};
+
+// @desc    Firebase token login (hybrid auth)
+// @route   POST /api/auth/firebase-login
+exports.firebaseLogin = async (req, res) => {
+  try {
+    const { firebaseToken, loginType } = req.body;
+
+    if (!firebaseToken) {
+      return res.status(400).json({ message: 'No Firebase token provided.' });
+    }
+
+    // Verify Firebase ID token
+    let decodedToken;
+    try {
+      decodedToken = await verifyFirebaseToken(firebaseToken);
+    } catch (verifyError) {
+      console.error('Firebase token verification failed:', verifyError.message);
+      return res.status(401).json({ message: 'Invalid or expired Firebase token. Please try logging in again.' });
+    }
+
+    const email = decodedToken.email;
+    const name = decodedToken.name || decodedToken.email.split('@')[0];
+
+    if (!email) {
+      return res.status(400).json({ message: 'Firebase token does not contain an email address.' });
+    }
+
+    // Look up user in backend database
+    let user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      // Auto-create ONLY for citizen login (loginType === 'user' or undefined)
+      if (loginType === 'police') {
+        return res.status(403).json({ message: 'No police account found for this email. Contact your administrator to register.' });
+      }
+      if (loginType === 'admin') {
+        return res.status(403).json({ message: 'No admin account found for this email. Contact the system administrator.' });
+      }
+
+      // Auto-create citizen user in backend DB
+      const randomPassword = 'Fb' + Math.random().toString(36).slice(-6) + Math.random().toString(36).slice(-6).toUpperCase() + '@1';
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        role: 'user'
+      });
+    }
+
+    // Enforce role checks based on loginType
+    if (loginType === 'police' && user.role !== 'police' && user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. This portal is reserved for Enforcement Personnel.' });
+    }
+    if (loginType === 'admin' && user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. This portal is restricted to System Administrators.' });
+    }
+
+    // Check if user is banned
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
+    }
+
+    // Issue backend JWT
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user.id)
+    });
+  } catch (error) {
+    console.error('Firebase login error:', error);
+    res.status(500).json({ message: 'Authentication failed. Please try again.', error: error.message });
+  }
+};
+
+// @desc    Supabase token login (hybrid auth for Admin)
+// @route   POST /api/auth/supabase-login
+exports.supabaseLogin = async (req, res) => {
+  try {
+    const { supabaseToken } = req.body;
+
+    if (!supabaseToken) {
+      return res.status(400).json({ message: 'No Supabase token provided.' });
+    }
+
+    // Verify Supabase JWT token
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(supabaseToken, process.env.SUPABASE_JWT_SECRET);
+    } catch (verifyError) {
+      console.error('Supabase token verification failed:', verifyError.message);
+      return res.status(401).json({ message: 'Invalid or expired Supabase token.' });
+    }
+
+    const email = decodedToken.email;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Supabase token does not contain an email address.' });
+    }
+
+    // Look up user in backend database
+    let user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(403).json({ message: 'No admin account found for this email. Contact the system administrator.' });
+    }
+
+    // Enforce role check
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. This portal is restricted to System Administrators.' });
+    }
+
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
+    }
+
+    // Issue backend JWT
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user.id)
+    });
+  } catch (error) {
+    console.error('Supabase login error:', error);
+    res.status(500).json({ message: 'Authentication failed. Please try again.', error: error.message });
   }
 };

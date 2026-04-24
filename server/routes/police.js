@@ -45,19 +45,45 @@ router.get('/reports', protect, policeOrAdmin, async (req, res) => {
   }
 });
 
-// @desc    Update report status (police can approve/reject)
+// @desc    Update report status (police can approve/reject/resolve)
 // @route   PUT /api/police/reports/:id
 router.put('/reports/:id', protect, policeOrAdmin, async (req, res) => {
   try {
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, verifiedNumberPlate, verifiedVehicleType } = req.body;
 
     const report = await Report.findByPk(req.params.id);
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
 
+    // If status is 'resolved', delete the report and its media files
+    if (status === 'resolved') {
+      // Delete media files from disk
+      const fs = require('fs');
+      const path = require('path');
+      if (report.media && Array.isArray(report.media)) {
+        report.media.forEach(m => {
+          if (m.url) {
+            const filePath = path.join(__dirname, '..', m.url);
+            try {
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`Deleted media file: ${filePath}`);
+              }
+            } catch (err) {
+              console.error(`Failed to delete media file: ${filePath}`, err.message);
+            }
+          }
+        });
+      }
+      await report.destroy();
+      return res.json({ message: 'Report resolved and deleted successfully.' });
+    }
+
     if (status) report.status = status;
     if (adminNotes !== undefined) report.adminNotes = adminNotes;
+    if (verifiedNumberPlate !== undefined) report.verifiedNumberPlate = verifiedNumberPlate;
+    if (verifiedVehicleType !== undefined) report.verifiedVehicleType = verifiedVehicleType;
 
     await report.save();
 

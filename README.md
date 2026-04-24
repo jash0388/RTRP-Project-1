@@ -1,8 +1,8 @@
 # 🚦 SPHN — Smart Traffic Violation Reporting & Analytics System
 
-A full-stack web application enabling citizens to report traffic violations with AI-assisted detection, and providing traffic police with an analytics dashboard.
+A full-stack web application enabling citizens to report traffic violations, and providing traffic police with an analytics dashboard for manual verification and enforcement.
 
-![Tech Stack](https://img.shields.io/badge/React-18-61DAFB?logo=react) ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb) ![Python](https://img.shields.io/badge/Python-Flask-3776AB?logo=python)
+![Tech Stack](https://img.shields.io/badge/React-18-61DAFB?logo=react) ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb)
 
 ---
 
@@ -12,7 +12,6 @@ A full-stack web application enabling citizens to report traffic violations with
 Project SPHN/
 ├── client/          # React frontend (Vite)
 ├── server/          # Node.js + Express backend
-├── ai-service/      # Python Flask AI microservice
 └── README.md
 ```
 
@@ -24,21 +23,13 @@ Project SPHN/
 - Automatic GPS location detection
 - Select violation type (10+ categories)
 - View report history with status tracking
-- AI analysis results (helmet, plate, vehicle type)
 
-### 🤖 AI Features
-- Automatic helmet detection
-- Number plate OCR (Indian format)
-- Vehicle type classification (bike, car, truck, etc.)
-- Auto-tagging violations
-- Confidence scoring
-
-### 🛡️ Admin Features
+### 🛡️ Admin/Police Features
 - Secure admin dashboard
 - View all reports with evidence
 - Interactive map with violation markers
 - Approve/reject reports with notes
-- Vehicle number extraction via AI
+- Manually enter verified vehicle data
 - User management
 
 ### 📈 Analytics
@@ -62,7 +53,6 @@ Project SPHN/
 ### Prerequisites
 - **Node.js** v18+ and npm
 - **MongoDB** (local or Atlas cloud)
-- **Python** 3.8+ (for AI service)
 
 ### 1. Backend Setup
 
@@ -76,7 +66,6 @@ Create `.env` file (already included with defaults):
 MONGO_URI=mongodb://localhost:27017/sphn
 JWT_SECRET=sphn_super_secret_key_2024
 PORT=5000
-AI_SERVICE_URL=http://localhost:5001
 ```
 
 Start the server:
@@ -88,17 +77,7 @@ Server runs on `http://localhost:5000`. An admin user is auto-seeded:
 - **Email:** admin@sphn.com
 - **Password:** admin123
 
-### 2. AI Service Setup
-
-```bash
-cd ai-service
-pip install -r requirements.txt
-python app.py
-```
-
-AI service runs on `http://localhost:5001`.
-
-### 3. Frontend Setup
+### 2. Frontend Setup
 
 ```bash
 cd client
@@ -150,7 +129,8 @@ Frontend runs on `http://localhost:5173`.
 | description | String | Optional, max 500 chars |
 | media | Array | `[{ url, type: 'image'|'video' }]` |
 | location | GeoJSON | `{ coordinates: [lng, lat], address }` |
-| aiResults | Object | `{ helmetDetected, numberPlate, vehicleType, autoTags, confidence }` |
+| verifiedNumberPlate | String | Populated by police during review |
+| verifiedVehicleType | String | Populated by police during review |
 | status | String | pending / approved / rejected |
 | adminNotes | String | Review notes |
 | timestamps | Date | Auto |
@@ -164,7 +144,6 @@ Frontend runs on `http://localhost:5173`.
 | Frontend | React 18, Vite, React Router, Recharts, Leaflet |
 | Backend | Node.js, Express, Mongoose, JWT, Multer |
 | Database | MongoDB |
-| AI Service | Python, Flask |
 | Maps | Leaflet + OpenStreetMap |
 | Auth | JWT (JSON Web Tokens) |
 | Styling | Vanilla CSS with custom properties |

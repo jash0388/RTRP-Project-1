@@ -7,7 +7,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { adminLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,7 +16,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await adminLogin(email, password);
       if (data.role !== 'admin') {
         throw new Error('Access denied. This portal is restricted to System Administrators.');
       }

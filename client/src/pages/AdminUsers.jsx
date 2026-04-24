@@ -9,6 +9,16 @@ export default function AdminUsers() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
+  // Registration modal state
+  const [showRegModal, setShowRegModal] = useState(false);
+  const [regType, setRegType] = useState('police'); // 'police', 'admin', or 'user'
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState('');
+  const [regSuccess, setRegSuccess] = useState('');
+
   useEffect(() => {
     loadUsers();
   }, [page]);
@@ -47,9 +57,53 @@ export default function AdminUsers() {
     }
   };
 
+  const openRegModal = (type) => {
+    setRegType(type);
+    setRegName('');
+    setRegEmail('');
+    setRegPassword('');
+    setRegError('');
+    setRegSuccess('');
+    setShowRegModal(true);
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setRegError('');
+    setRegSuccess('');
+    setRegLoading(true);
+
+    try {
+      let fn;
+      if (regType === 'admin') fn = adminAPI.registerAdmin;
+      else if (regType === 'police') fn = adminAPI.registerPolice;
+      else fn = adminAPI.registerUser;
+      const data = await fn(regName, regEmail, regPassword);
+      const roleLabel = regType === 'admin' ? 'Admin' : regType === 'police' ? 'Police officer' : 'Citizen user';
+      setRegSuccess(data.message || `${roleLabel} registered successfully!`);
+      loadUsers(); // Refresh user list
+      // Clear form but keep modal open to show success
+      setRegName('');
+      setRegEmail('');
+      setRegPassword('');
+    } catch (err) {
+      setRegError(err.message || 'Registration failed.');
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
+
+  const getRoleBadgeClass = (role) => {
+    switch (role) {
+      case 'admin': return 'badge-rejected'; // red for admin
+      case 'police': return 'badge-pending'; // yellow for police
+      default: return 'badge-approved'; // green for user
+    }
+  };
 
   if (loading) {
     return <div className="loader"><div className="spinner"></div></div>;
@@ -62,6 +116,148 @@ export default function AdminUsers() {
         <p className="page-subtitle">View and manage registered users ({total} total)</p>
       </div>
 
+      {/* Registration Buttons */}
+      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)', flexWrap: 'wrap' }}>
+        <button
+          className="btn btn-primary"
+          onClick={() => openRegModal('police')}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          🛡️ Register Police Officer
+        </button>
+        <button
+          className="btn"
+          onClick={() => openRegModal('admin')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: '#b91c1c', color: 'white', border: 'none'
+          }}
+        >
+          ⚙️ Register New Admin
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => openRegModal('user')}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          👤 Register Citizen User
+        </button>
+      </div>
+
+      {/* Registration Modal */}
+      {showRegModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="card" style={{
+            maxWidth: '460px', width: '100%', padding: 'var(--space-2xl)',
+            borderRadius: 'var(--radius-lg)', position: 'relative',
+            borderTop: regType === 'admin' ? '4px solid #b91c1c' : regType === 'police' ? '4px solid var(--primary-700)' : '4px solid #16a34a'
+          }}>
+            <button
+              onClick={() => setShowRegModal(false)}
+              style={{
+                position: 'absolute', top: '12px', right: '16px',
+                background: 'none', border: 'none', fontSize: '1.5rem',
+                cursor: 'pointer', color: 'var(--text-tertiary)'
+              }}
+            >×</button>
+
+            <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 800, marginBottom: '4px', color: 'var(--primary-800)' }}>
+              {regType === 'admin' ? '⚙️ Register New Admin' : regType === 'police' ? '🛡️ Register Police Officer' : '👤 Register Citizen User'}
+            </h3>
+            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: 'var(--space-lg)' }}>
+              {regType === 'admin'
+                ? 'Create a new system administrator account.'
+                : regType === 'police'
+                  ? 'Create credentials for an enforcement officer.'
+                  : 'Create a new citizen user account.'}
+            </p>
+
+            {regError && (
+              <div style={{
+                background: '#fef2f2', border: '1px solid #fee2e2',
+                borderRadius: 'var(--radius-sm)', padding: 'var(--space-md)',
+                color: '#b91c1c', fontSize: 'var(--font-xs)',
+                marginBottom: 'var(--space-md)', textAlign: 'center'
+              }}>{regError}</div>
+            )}
+
+            {regSuccess && (
+              <div style={{
+                background: '#f0fdf4', border: '1px solid #bbf7d0',
+                borderRadius: 'var(--radius-sm)', padding: 'var(--space-md)',
+                color: '#166534', fontSize: 'var(--font-xs)',
+                marginBottom: 'var(--space-md)', textAlign: 'center'
+              }}>✅ {regSuccess}</div>
+            )}
+
+            <form onSubmit={handleRegister}>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={regType === 'admin' ? 'Administrator Name' : 'Officer Full Name'}
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder={regType === 'admin' ? 'admin@example.com' : 'officer@example.com'}
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Temporary Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="Min 6 characters"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                  The user can change this password after their first login.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-lg)' }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
+                  disabled={regLoading}
+                >
+                  {regLoading ? 'Creating Account...' : `Register ${regType === 'admin' ? 'Admin' : 'Officer'}`}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRegModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Users Table */}
       <div className="card">
         <div className="card-body" style={{ padding: 0 }}>
           {users.length === 0 ? (
@@ -91,7 +287,11 @@ export default function AdminUsers() {
                           <div style={{
                             width: 36, height: 36,
                             borderRadius: 'var(--radius-full)',
-                            background: 'linear-gradient(135deg, var(--primary-400), var(--accent-400))',
+                            background: user.role === 'admin'
+                              ? 'linear-gradient(135deg, #b91c1c, #ef4444)'
+                              : user.role === 'police'
+                                ? 'linear-gradient(135deg, #1e40af, #3b82f6)'
+                                : 'linear-gradient(135deg, var(--primary-400), var(--accent-400))',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'white', fontWeight: 600, fontSize: 'var(--font-sm)',
                             flexShrink: 0
@@ -103,8 +303,8 @@ export default function AdminUsers() {
                       </td>
                       <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>{user.email}</td>
                       <td>
-                        <span className={`badge ${user.role === 'admin' ? 'badge-approved' : 'badge-pending'}`}>
-                          {user.role}
+                        <span className={`badge ${getRoleBadgeClass(user.role)}`} style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700 }}>
+                          {user.role === 'admin' ? '🔴 ADMIN' : user.role === 'police' ? '🔵 POLICE' : '🟢 CITIZEN'}
                         </span>
                       </td>
                       <td>

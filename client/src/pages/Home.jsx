@@ -70,7 +70,7 @@ export default function Home() {
             marginBottom: 'var(--space-xl)',
             lineHeight: 1.6
           }}>
-            An official initiative to enhance road safety through community participation and AI-driven monitoring. 
+            An official initiative to enhance road safety through community participation and crowdsourced monitoring. 
             Report violations securely and contribute to safer roads for everyone.
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>

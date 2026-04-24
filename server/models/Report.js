@@ -45,29 +45,17 @@ const Report = sequelize.define('Report', {
     type: DataTypes.STRING(255),
     defaultValue: ''
   },
-  // AI Results stored as JSON
-  aiHelmetDetected: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: null
-  },
-  aiNumberPlate: {
+  // Manual verification fields (populated by Police/Admin)
+  verifiedNumberPlate: {
     type: DataTypes.STRING(20),
     defaultValue: ''
   },
-  aiVehicleType: {
+  verifiedVehicleType: {
     type: DataTypes.STRING(50),
     defaultValue: ''
   },
-  aiAutoTags: {
-    type: DataTypes.JSON,
-    defaultValue: []
-  },
-  aiConfidence: {
-    type: DataTypes.DECIMAL(4, 2),
-    defaultValue: 0
-  },
   status: {
-    type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+    type: DataTypes.ENUM('pending', 'approved', 'rejected', 'resolved'),
     defaultValue: 'pending'
   },
   adminNotes: {
@@ -98,13 +86,8 @@ Report.prototype.toAPIFormat = function(user) {
       coordinates: [parseFloat(this.longitude), parseFloat(this.latitude)],
       address: this.address
     },
-    aiResults: {
-      helmetDetected: this.aiHelmetDetected,
-      numberPlate: this.aiNumberPlate,
-      vehicleType: this.aiVehicleType,
-      autoTags: this.aiAutoTags || [],
-      confidence: parseFloat(this.aiConfidence) || 0
-    },
+    verifiedNumberPlate: this.verifiedNumberPlate,
+    verifiedVehicleType: this.verifiedVehicleType,
     status: this.status,
     adminNotes: this.adminNotes,
     createdAt: this.createdAt,

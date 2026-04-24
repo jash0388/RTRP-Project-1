@@ -12,6 +12,8 @@ export default function PoliceReports() {
   const [editingReport, setEditingReport] = useState(null);
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editNumberPlate, setEditNumberPlate] = useState('');
+  const [editVehicleType, setEditVehicleType] = useState('');
   const [showMap, setShowMap] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [lightboxMedia, setLightboxMedia] = useState(null);
@@ -89,12 +91,21 @@ export default function PoliceReports() {
   const handleUpdateReport = async () => {
     if (!editingReport) return;
     try {
-      await fetch(`/api/police/reports/${editingReport._id}`, {
+      const res = await fetch(`/api/police/reports/${editingReport._id}`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify({ status: editStatus, adminNotes: editNotes })
+        body: JSON.stringify({ 
+          status: editStatus, 
+          adminNotes: editNotes,
+          verifiedNumberPlate: editNumberPlate,
+          verifiedVehicleType: editVehicleType
+        })
       });
+      const data = await res.json();
       setEditingReport(null);
+      if (editStatus === 'resolved') {
+        alert('✅ Report resolved and deleted successfully.');
+      }
       loadReports();
     } catch (err) {
       console.error('Failed to update report:', err);
@@ -105,6 +116,8 @@ export default function PoliceReports() {
     setEditingReport(report);
     setEditStatus(report.status);
     setEditNotes(report.adminNotes || '');
+    setEditNumberPlate(report.verifiedNumberPlate || '');
+    setEditVehicleType(report.verifiedVehicleType || '');
     setMediaIndex(0);
   };
 
@@ -193,6 +206,7 @@ export default function PoliceReports() {
               <option value="pending">Awaiting Review</option>
               <option value="approved">Verified</option>
               <option value="rejected">Dismissed</option>
+              <option value="resolved">Resolved</option>
             </select>
 
             <select
@@ -271,10 +285,10 @@ export default function PoliceReports() {
                         {r.location?.address || 'SECURED GPS POINT'}
                       </td>
                       <td style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>
-                        {r.aiResults?.numberPlate || 'ENCRYPTED'}
+                        {r.verifiedNumberPlate || '—'}
                       </td>
                       <td style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-                        {r.aiResults?.vehicleType || 'UNKNOWN'}
+                        {r.verifiedVehicleType || '—'}
                       </td>
                       <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
@@ -346,11 +360,35 @@ export default function PoliceReports() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">Verified Vehicle Type</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editVehicleType}
+                  onChange={(e) => setEditVehicleType(e.target.value)}
+                  placeholder="e.g., Car, Motorcycle, Truck"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Verified Number Plate</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editNumberPlate}
+                  onChange={(e) => setEditNumberPlate(e.target.value.toUpperCase())}
+                  placeholder="e.g., MH02AB1234"
+                  style={{ textTransform: 'uppercase', fontFamily: 'monospace' }}
+                />
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Enforcement Decision</label>
                 <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
                   <option value="pending">Awaiting Review</option>
                   <option value="approved">Verify Violation</option>
                   <option value="rejected">Dismiss Case</option>
+                  <option value="resolved">✅ Mark Resolved (Deletes Report & Media)</option>
                 </select>
               </div>
 

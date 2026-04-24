@@ -6,7 +6,10 @@ const {
   getAllUsers, 
   deleteReport,
   deleteUser,
-  toggleBanUser
+  toggleBanUser,
+  registerPolice,
+  registerAdmin,
+  registerUser
 } = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middleware/auth');
 
@@ -17,5 +20,10 @@ router.delete('/reports/:id', protect, adminOnly, deleteReport);
 router.get('/users', protect, adminOnly, getAllUsers);
 router.delete('/users/:id', protect, adminOnly, deleteUser);
 router.patch('/users/:id/ban', protect, adminOnly, toggleBanUser);
+
+// Admin-only: register police and admin accounts
+router.post('/register-police', protect, adminOnly, registerPolice);
+router.post('/register-admin', protect, adminOnly, registerAdmin);
+router.post('/register-user', protect, adminOnly, registerUser);
 
 module.exports = router;

@@ -13,6 +13,8 @@ export default function AdminAuditRegistry() {
   const [editingReport, setEditingReport] = useState(null);
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editNumberPlate, setEditNumberPlate] = useState('');
+  const [editVehicleType, setEditVehicleType] = useState('');
   const [showMap, setShowMap] = useState(false);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -82,7 +84,9 @@ export default function AdminAuditRegistry() {
     try {
       await adminAPI.updateReport(editingReport._id, {
         status: editStatus,
-        adminNotes: editNotes
+        adminNotes: editNotes,
+        verifiedNumberPlate: editNumberPlate,
+        verifiedVehicleType: editVehicleType
       });
       setEditingReport(null);
       loadReports();
@@ -105,6 +109,8 @@ export default function AdminAuditRegistry() {
     setEditingReport(report);
     setEditStatus(report.status);
     setEditNotes(report.adminNotes || '');
+    setEditNumberPlate(report.verifiedNumberPlate || '');
+    setEditVehicleType(report.verifiedVehicleType || '');
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
@@ -210,8 +216,8 @@ export default function AdminAuditRegistry() {
                         {r.location?.address || 'GPS Subsystem Active'}
                       </td>
                       <td>
-                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.aiResults?.numberPlate || 'SECURED'}</div>
-                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.aiResults?.vehicleType || 'Unknown'}</div>
+                        <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 800 }}>{r.verifiedNumberPlate || '—'}</div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{r.verifiedVehicleType || '—'}</div>
                       </td>
                       <td style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}
@@ -267,6 +273,29 @@ export default function AdminAuditRegistry() {
                   <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 700 }}>Location Entry</div>
                   <div style={{ fontSize: '11px', fontWeight: 500 }}>{editingReport.location?.address || 'SECURED'}</div>
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Verified Vehicle Type</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editVehicleType}
+                  onChange={(e) => setEditVehicleType(e.target.value)}
+                  placeholder="e.g., Car, Motorcycle, Truck"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Verified Number Plate</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={editNumberPlate}
+                  onChange={(e) => setEditNumberPlate(e.target.value.toUpperCase())}
+                  placeholder="e.g., MH02AB1234"
+                  style={{ textTransform: 'uppercase', fontFamily: 'monospace' }}
+                />
               </div>
 
               <div className="form-group">

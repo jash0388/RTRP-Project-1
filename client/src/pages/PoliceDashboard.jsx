@@ -113,7 +113,7 @@ export default function PoliceDashboard() {
                     <th>Reporter</th>
                     <th>Violation</th>
                     <th>Location</th>
-                    <th>AI Plate</th>
+                    <th>Verified Plate</th>
                     <th>Date</th>
                     <th>Status</th>
                   </tr>
@@ -127,7 +127,7 @@ export default function PoliceDashboard() {
                         {r.location?.address || 'GPS Location'}
                       </td>
                       <td style={{ fontFamily: 'monospace', fontSize: 'var(--font-sm)', fontWeight: 600 }}>
-                        {r.aiResults?.numberPlate || '—'}
+                        {r.verifiedNumberPlate || '—'}
                       </td>
                       <td style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         {formatDate(r.createdAt)}

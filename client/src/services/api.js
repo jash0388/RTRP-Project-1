@@ -53,6 +53,20 @@ export const authAPI = {
       body: JSON.stringify({ token })
     }).then(handleResponse),
 
+  firebaseLogin: (firebaseToken, loginType) =>
+    fetch(`${API_BASE}/auth/firebase-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firebaseToken, loginType })
+    }).then(handleResponse),
+
+  supabaseLogin: (supabaseToken) =>
+    fetch(`${API_BASE}/auth/supabase-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supabaseToken })
+    }).then(handleResponse),
+
   getMe: () =>
     fetch(`${API_BASE}/auth/me`, { headers: getHeaders() }).then(handleResponse)
 };
@@ -114,6 +128,27 @@ export const adminAPI = {
     fetch(`${API_BASE}/admin/users/${id}/ban`, {
       method: 'PATCH',
       headers: getHeaders()
+    }).then(handleResponse),
+
+  registerPolice: (name, email, password) =>
+    fetch(`${API_BASE}/admin/register-police`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ name, email, password })
+    }).then(handleResponse),
+
+  registerAdmin: (name, email, password) =>
+    fetch(`${API_BASE}/admin/register-admin`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ name, email, password })
+    }).then(handleResponse),
+
+  registerUser: (name, email, password) =>
+    fetch(`${API_BASE}/admin/register-user`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ name, email, password })
     }).then(handleResponse)
 };
 
