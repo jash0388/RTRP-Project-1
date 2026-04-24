@@ -1,13 +1,15 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = process.env.SUPABASE_URL
-  ? new Sequelize(process.env.SUPABASE_URL, {
+const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_URL;
+
+const sequelize = databaseUrl
+  ? new Sequelize(databaseUrl, {
       dialect: 'postgres',
       logging: false,
       dialectOptions: {
         ssl: {
           require: true,
-          rejectUnauthorized: false // Supabase requires this for SSL
+          rejectUnauthorized: false
         }
       },
       pool: {
@@ -38,8 +40,7 @@ const sequelize = process.env.SUPABASE_URL
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database Connected successfully');
-    // Sync all models
+    console.log('Database connected successfully');
     await sequelize.sync({ alter: true });
     console.log('Database tables synced');
   } catch (error) {

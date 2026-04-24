@@ -2,86 +2,62 @@ const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
 
-// Initialize Firebase Admin SDK
-// Looks for service account JSON in config/ directory
 const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
 
-let firebaseApp;
+let firebaseApp = null;
 
 if (fs.existsSync(serviceAccountPath)) {
-  const serviceAccount = require(serviceAccountPath);
-  firebaseApp = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-  console.log('Firebase Admin SDK initialized with service account');
-} else {
-  // Fallback: Use just the project ID. This allows verifyIdToken to work
-  // even without a service account (but creating users will fail).
+  try {
+    const serviceAccount = require(serviceAccountPath);
+    firebaseApp = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log('Firebase Admin SDK initialized with service account');
+  } catch (err) {
+    console.warn('Firebase Admin SDK init failed:', err.message);
+  }
+} else if (process.env.FIREBASE_PROJECT_ID) {
   try {
     firebaseApp = admin.initializeApp({
-      projectId: 'rtrp-a11b1'
+      projectId: process.env.FIREBASE_PROJECT_ID
     });
-    console.log('Firebase Admin SDK initialized with projectId (token verification enabled)');
+    console.log('Firebase Admin SDK initialized with projectId only (token verification only)');
   } catch (err) {
-    console.warn('⚠️  Firebase Admin SDK NOT initialized. Place firebase-service-account.json in server/config/');
-    console.warn('   Download from: Firebase Console → Project Settings → Service Accounts → Generate New Private Key');
+    console.warn('Firebase Admin SDK init failed:', err.message);
   }
+} else {
+  console.log('Firebase Admin SDK not configured. Firebase login routes will be disabled.');
 }
 
 const firebaseAuth = admin.apps.length ? admin.auth() : null;
 
-/**
- * Verify a Firebase ID token and return the decoded payload
- * @param {string} idToken - Firebase ID token from the client
- * @returns {Promise<admin.auth.DecodedIdToken>}
- */
 const verifyFirebaseToken = async (idToken) => {
   if (!firebaseAuth) {
-    throw new Error('Firebase Admin SDK is not initialized. Cannot verify tokens.');
+    throw new Error('Firebase Admin SDK is not initialized.');
   }
   return await firebaseAuth.verifyIdToken(idToken);
 };
 
-/**
- * Create a user in Firebase Auth
- * @param {string} email
- * @param {string} password
- * @param {string} displayName
- * @returns {Promise<admin.auth.UserRecord>}
- */
 const createFirebaseUser = async (email, password, displayName) => {
   if (!firebaseAuth) {
-    throw new Error('Firebase Admin SDK is not initialized. Cannot create users.');
+    throw new Error('Firebase Admin SDK is not initialized.');
   }
   try {
-    const userRecord = await firebaseAuth.createUser({
-      email,
-      password,
-      displayName,
-      emailVerified: true
-    });
-    return userRecord;
+    return await firebaseAuth.createUser({ email, password, displayName, emailVerified: true });
   } catch (error) {
-    // If user already exists in Firebase, that's OK
     if (error.code === 'auth/email-already-exists') {
-      console.log(`Firebase user already exists: ${email}`);
       return await firebaseAuth.getUserByEmail(email);
     }
     throw error;
   }
 };
 
-/**
- * Delete a user from Firebase Auth by email
- * @param {string} email
- */
 const deleteFirebaseUser = async (email) => {
   if (!firebaseAuth) return;
   try {
     const userRecord = await firebaseAuth.getUserByEmail(email);
     await firebaseAuth.deleteUser(userRecord.uid);
   } catch (error) {
-    // Ignore if user doesn't exist in Firebase
     if (error.code !== 'auth/user-not-found') {
       console.error('Error deleting Firebase user:', error.message);
     }
